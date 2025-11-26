@@ -1,10 +1,25 @@
 import { searchCharacters, selectBible } from '../api/getData';
-import { displayBible } from './sendMessage';
+import { displayBible, getLastSelectedVerse } from './sendMessage';
 import { getBibleOptions } from '../config/bibleConfig.js';
 import obsWebSocket from './obsWebSocket.js';
+import {
+  initResumeManager,
+  addEntry,
+  isCurrentlyRecording,
+  startRecording,
+  stopRecording,
+} from './resumeManager.js';
+import { setContentVisible } from './appState.js';
 
 const bgContent = new BroadcastChannel('bgContent');
-const TAB_ELEMENTS = ['tab-text', 'tab-bibleText', 'tab-listText', 'tab-obsWebSocket', 'tab-setBg'];
+const TAB_ELEMENTS = [
+  'tab-text',
+  'tab-bibleText',
+  'tab-listText',
+  'tab-dsk',
+  'tab-resume',
+  'tab-setBg',
+];
 
 let bgContentBtn = null;
 
@@ -137,8 +152,17 @@ async function handleBgContent() {
       }
     }
 
+    // Register verse in resume when showing
+    if (isCurrentlyRecording()) {
+      const verseInfo = getLastSelectedVerse();
+      if (verseInfo) {
+        addEntry(verseInfo);
+      }
+    }
+
     bgContent.postMessage('shown');
     bgContentBtn.innerHTML = 'Ocultar';
+    setContentVisible(true);
   } else {
     if (obsWebSocket.connected) {
       const autoSceneEnabled = localStorage.getItem('obsAutoSceneEnabled') === 'true';
@@ -149,6 +173,7 @@ async function handleBgContent() {
 
     bgContent.postMessage('hidden');
     bgContentBtn.innerHTML = 'Mostrar';
+    setContentVisible(false);
   }
 }
 
@@ -274,6 +299,17 @@ function initializeOBSWebSocket() {
     console.log(`🎬 Scene changed to: ${sceneName}`);
   });
 
+  // Register recording events to auto-start/stop Resume
+  obsWebSocket.onRecordingStarted(() => {
+    console.log('🔴 OBS Recording started - Auto-starting Resume');
+    startRecording(true); // true = from OBS (auto mode)
+  });
+
+  obsWebSocket.onRecordingStopped(() => {
+    console.log('⏹️ OBS Recording stopped - Auto-stopping Resume');
+    stopRecording(true); // true = from OBS (auto mode)
+  });
+
   // Attempt to connect
   obsWebSocket.connect().catch((error) => {
     console.error('❌ Failed to initialize OBS WebSocket:', error);
@@ -329,6 +365,9 @@ function initializePanel() {
 
   // Initialize OBS WebSocket Panel UI
   initializeOBSWebSocketPanel();
+
+  // Initialize Resume Manager
+  initResumeManager();
 
   console.log('✅ Panel fully initialized');
 }

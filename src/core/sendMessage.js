@@ -1,5 +1,7 @@
 import { processVerseText } from '../api/getData.js';
 import { getBibleMap } from '../config/bibleConfig.js';
+import { addEntry, isCurrentlyRecording } from './resumeManager.js';
+import { isContentVisible } from './appState.js';
 
 const messageChannel = new BroadcastChannel('myChannel');
 const historyButton = document.getElementById('history');
@@ -7,6 +9,7 @@ const CLICK_DEBOUNCE_MS = 300;
 const BIBLE_MAP = getBibleMap();
 
 let verseHistory = [];
+let lastSelectedVerse = null;
 
 /**
  * Sends free-form text message to browser overlay
@@ -126,6 +129,21 @@ function displayBible(verse, index) {
     clickedVerse.classList.add('clicked');
     setTimeout(() => clickedVerse.classList.remove('clicked'), 300);
 
+    // Store last selected verse for resume feature
+    lastSelectedVerse = {
+      title: title,
+      versionName: versionName,
+      text: verseText,
+    };
+
+    // Add to resume if recording AND content is visible
+    if (isCurrentlyRecording() && isContentVisible()) {
+      addEntry({
+        title: title,
+        versionName: versionName,
+      });
+    }
+
     messageChannel.postMessage(messageHtml);
     console.log(`📚 Sending verse with version: ${versionName}`);
     console.log('ℹ️ Font size will be pre-calculated automatically');
@@ -181,4 +199,11 @@ function showHistory() {
 
 historyButton.addEventListener('click', showHistory);
 
-export { displayBible };
+/**
+ * Get last selected verse info for resume
+ */
+function getLastSelectedVerse() {
+  return lastSelectedVerse;
+}
+
+export { displayBible, getLastSelectedVerse };
