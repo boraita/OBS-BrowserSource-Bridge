@@ -6,11 +6,12 @@ const DEFAULT_BIBLE = 'kdsh';
 
 export let openedDb = null;
 export let selectedBibleName = null;
+let selectedBibleCode = null;
 
 export async function selectBible(name) {
   const bibleName = name?.toLowerCase() || DEFAULT_BIBLE;
 
-  if (openedDb && selectedBibleName === bibleName) {
+  if (openedDb && selectedBibleCode === bibleName) {
     return openedDb;
   }
 
@@ -22,16 +23,18 @@ export async function selectBible(name) {
     }
   }
 
-  const bible = BIBLE_MAP[bibleName] || BIBLE_MAP[DEFAULT_BIBLE];
+  const resolvedCode = BIBLE_MAP[bibleName] ? bibleName : DEFAULT_BIBLE;
+  const bible = BIBLE_MAP[resolvedCode];
 
   try {
-    console.log(`📥 Loading bible: ${bibleName.toUpperCase()}...`);
+    console.log(`📥 Loading bible: ${resolvedCode.toUpperCase()}...`);
     const bibleModule = await bible.loader();
     const bibleFile = bibleModule.default;
 
     openedDb = await openDb(bibleFile);
     selectedBibleName = bible.name;
-    console.log(`✅ Bible loaded: ${selectedBibleName.toUpperCase()}`);
+    selectedBibleCode = resolvedCode;
+    console.log(`✅ Bible loaded: ${selectedBibleCode.toUpperCase()}`);
     return openedDb;
   } catch (error) {
     console.error(`❌ Error opening bible ${bibleName}:`, error);
@@ -148,31 +151,38 @@ export async function searchCharacters(chapterBook) {
       : normalizeBookName(parts.join(' '));
 
     const chapterNumber = hasChapterNumber ? Number(lastPart) : null;
-    const chapterCondition = chapterNumber !== null ? `AND verses.chapter = ${chapterNumber}` : '';
 
-    const query = `
-      SELECT 
-        verses.chapter, 
-        verses.verse, 
-        verses.text, 
-        books.long_name
-      FROM books
-      INNER JOIN verses ON books.book_number = verses.book_number
-      WHERE books.long_name LIKE '${bookName}' ${chapterCondition}
-      ORDER BY verses.chapter, verses.verse
-    `;
+    const sql =
+      chapterNumber !== null
+        ? `SELECT verses.chapter, verses.verse, verses.text, books.long_name
+           FROM books
+           INNER JOIN verses ON books.book_number = verses.book_number
+           WHERE books.long_name LIKE ?
+             AND verses.chapter = ?
+           ORDER BY verses.chapter, verses.verse`
+        : `SELECT verses.chapter, verses.verse, verses.text, books.long_name
+           FROM books
+           INNER JOIN verses ON books.book_number = verses.book_number
+           WHERE books.long_name LIKE ?
+           ORDER BY verses.chapter, verses.verse`;
 
-    const result = db.exec(query);
+    const stmt = db.prepare(sql);
+    stmt.bind(chapterNumber !== null ? [bookName, chapterNumber] : [bookName]);
 
-    if (!result || result.length === 0 || !result[0]?.values) {
-      console.log(`ℹ️ No verses found for: ${chapterBook}`);
-      return [];
+    const results = [];
+    while (stmt.step()) {
+      const row = stmt.getAsObject();
+      results.push({
+        name: `${row.long_name} ${row.chapter}:${row.verse}`,
+        verse: processVerseText(row.text),
+      });
     }
+    stmt.free();
 
-    return result[0].values.map((row) => ({
-      name: `${row[3]} ${row[0]}:${row[1]}`,
-      verse: processVerseText(row[2]),
-    }));
+    if (results.length === 0) {
+      console.log(`ℹ️ No verses found for: ${chapterBook}`);
+    }
+    return results;
   } catch (error) {
     console.error('❌ Error in searchCharacters:', error);
     return [];
@@ -193,35 +203,32 @@ export async function searchInBibleText(text) {
   }
 
   try {
-    const sanitizedText = text.replace(/'/g, "''");
+    console.log(`🔍 Searching: "${text}" in ${selectedBibleCode?.toUpperCase()}`);
 
-    const query = `
-      SELECT 
-        verses.chapter, 
-        verses.verse, 
-        verses.text, 
-        books.long_name
+    const stmt = db.prepare(`
+      SELECT verses.chapter, verses.verse, verses.text, books.long_name
       FROM books
       INNER JOIN verses ON books.book_number = verses.book_number
-      WHERE verses.text LIKE '%${sanitizedText}%'
+      WHERE verses.text LIKE ?
       ORDER BY books.book_number, verses.chapter, verses.verse
-    `;
+    `);
+    stmt.bind([`%${text}%`]);
 
-    console.log(`🔍 Searching: "${text}" in ${selectedBibleName?.toUpperCase()}`);
-
-    const result = db.exec(query);
-
-    if (!result || result.length === 0 || !result[0]?.values) {
-      console.log(`ℹ️ No results found for: "${text}"`);
-      return [];
+    const results = [];
+    while (stmt.step()) {
+      const row = stmt.getAsObject();
+      results.push({
+        name: `${row.long_name} ${row.chapter}:${row.verse}`,
+        verse: processVerseText(row.text),
+      });
     }
+    stmt.free();
 
-    const results = result[0].values.map((row) => ({
-      name: `${row[3]} ${row[0]}:${row[1]}`,
-      verse: processVerseText(row[2]),
-    }));
-
-    console.log(`✅ Found ${results.length} verses`);
+    if (results.length === 0) {
+      console.log(`ℹ️ No results found for: "${text}"`);
+    } else {
+      console.log(`✅ Found ${results.length} verses`);
+    }
     return results;
   } catch (error) {
     console.error('❌ Error in searchInBibleText:', error);
@@ -246,7 +253,7 @@ function removeTags(str) {
 export function processVerseText(text) {
   if (!text) return '';
 
-  const textWithoutTags = requiresTagCleaning(selectedBibleName) ? removeTags(text) : text;
+  const textWithoutTags = requiresTagCleaning(selectedBibleCode) ? removeTags(text) : text;
 
   return textWithoutTags
     .replace(/<\/?br\s*\/?>/gi, ' ') // HTML line breaks

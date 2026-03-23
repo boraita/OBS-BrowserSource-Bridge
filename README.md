@@ -102,6 +102,44 @@ The new Bible will automatically appear in the version selector!
 4. **Click** on a verse result to display it on your overlay
 5. The verse appears instantly on your Browser Source!
 
+## 📋 Resume Feature
+
+The **Resume** tab allows you to track timestamps of displayed verses during your recording or stream. This is useful for creating video chapters or providing viewers with a summary of all verses shown.
+
+### How to Use
+
+1. **Navigate** to the **Resume** tab in the Control Panel
+2. **Click** `▶️ Start` to begin tracking timestamps
+3. **Show verses** as normal - each time you display a verse, it will be logged with:
+   - Timestamp (MM:SS format from when you started)
+   - Verse reference (e.g., "GENESIS 1:1")
+   - Bible version (e.g., "RVR60")
+4. **Click** `⏹️ Stop` when finished
+
+### Additional Controls
+
+- **📋 Copy**: Copy the entire list to clipboard (ready to paste in video description)
+- **🗑️ Clear**: Clear all entries and reset the timer
+
+### Multiple Recording Sessions
+
+If you stop and start again, a separator `--- New recording ---` will be added to distinguish between sessions.
+
+### Example Output
+
+```
+00:00 GENESIS 1:1 - RVR60
+01:30 PSALM 23:1 - NVI
+03:45 JOHN 3:16 - RVR60
+
+--- New recording ---
+
+00:00 MATTHEW 5:3 - RVR60
+02:15 ROMANS 8:28 - NVI
+```
+
+This format is perfect for YouTube video chapters or stream summaries!
+
 ## 📚 Documentation
 
 - **[INSTALLATION.md](INSTALLATION.md)** - Complete installation guide for OBS

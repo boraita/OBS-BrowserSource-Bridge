@@ -44,7 +44,7 @@
             <button id="sendList">Show text</button>
           </div>
         </div>
-        <div id="obsWebSocket" class="tab-area" style="display: none">
+        <div id="dsk" class="tab-area" style="display: none">
           <div class="container">
             <div class="obs-websocket-panel">
               <div class="obs-header">
@@ -195,6 +195,37 @@
                   <button id="obs-check-dsk-btn" class="icon-btn">🔍 Check DSK</button>
                 </div>
                 <div id="obs-dsk-sources-list" class="dsk-sources-list"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="resume" class="tab-area" style="display: none">
+          <div class="container">
+            <div class="resume-panel">
+              <div class="resume-header">
+                <h2>📋 Resume</h2>
+                <div class="resume-controls">
+                  <button id="resume-start-btn" class="resume-btn primary-btn">▶️ Start</button>
+                  <button id="resume-stop-btn" class="resume-btn secondary-btn" disabled>
+                    ⏹️ Stop
+                  </button>
+                  <button id="resume-copy-btn" class="resume-btn secondary-btn">📋 Copy</button>
+                  <button id="resume-clear-btn" class="resume-btn secondary-btn">🗑️ Clear</button>
+                </div>
+              </div>
+              <div class="resume-info">
+                <p style="color: #888; font-size: 12px; margin: 0;">
+                  💡 Recording starts/stops automatically when OBS starts/stops recording (if connected).
+                </p>
+              </div>
+              <div class="resume-timer">
+                <span id="resume-timer-display">00:00</span>
+                <span id="resume-status" class="resume-status-stopped">Stopped</span>
+              </div>
+              <div class="resume-list-container">
+                <div id="resume-list" class="resume-list">
+                  <p class="resume-empty">Press Start and show verses to record timestamps</p>
+                </div>
               </div>
             </div>
           </div>
@@ -820,7 +851,8 @@
         <button class="tab-button" id="tab-text">Text</button>
         <button class="tab-button" id="tab-bibleText">Bible</button>
         <button class="tab-button" id="tab-listText">List</button>
-        <button class="tab-button" id="tab-obsWebSocket">OBS</button>
+        <button class="tab-button" id="tab-dsk">DKS</button>
+        <button class="tab-button" id="tab-resume">Resume</button>
         <button class="tab-button" id="tab-setBg">Settings</button>
       </div>
     </div>

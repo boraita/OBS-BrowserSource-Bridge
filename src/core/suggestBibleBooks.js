@@ -2,6 +2,8 @@ import { getBibleChapterBooksList } from '../api/getData';
 
 let selectedBibleVersion;
 let bookOfBibles;
+let normalizedBookOfBibles; // pre-computed lowercased+accent-free versions
+let debounceTimer;
 const bibleInput = document.getElementById('bible-input');
 const suggestionsList = document.getElementById('suggestions');
 let selectedSuggestionIndex = -1;
@@ -15,6 +17,8 @@ async function getBooksOfTheBible() {
 
   if (currentVersion !== selectedBibleVersion) {
     bookOfBibles = await getBibleChapterBooksList();
+    // Pre-normalize once so filtering doesn't repeat this work on every keystroke
+    normalizedBookOfBibles = bookOfBibles.map((b) => removeAccents(b).toLowerCase());
     selectedBibleVersion = currentVersion;
   }
 
@@ -58,22 +62,22 @@ function createSuggestionItem(book, index) {
   return listItem;
 }
 
-bibleInput.addEventListener('input', async function () {
-  const inputValue = bibleInput.value.toLowerCase();
-  const inputSearch = removeAccents(inputValue);
-  const books = await getBooksOfTheBible();
-  const filteredBooks = books.filter((book) =>
-    removeAccents(book).toLowerCase().includes(inputSearch)
-  );
+bibleInput.addEventListener('input', function () {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(async () => {
+    const inputSearch = removeAccents(bibleInput.value.toLowerCase());
+    const books = await getBooksOfTheBible();
 
-  suggestionsList.innerHTML = '';
+    const filteredBooks = books.filter((_, i) => normalizedBookOfBibles[i].includes(inputSearch));
 
-  filteredBooks.forEach((book, index) => {
-    const listItem = createSuggestionItem(book, index);
-    suggestionsList.appendChild(listItem);
-  });
+    suggestionsList.innerHTML = '';
+    filteredBooks.forEach((book, index) => {
+      const listItem = createSuggestionItem(book, index);
+      suggestionsList.appendChild(listItem);
+    });
 
-  selectedSuggestionIndex = -1;
+    selectedSuggestionIndex = -1;
+  }, 250);
 });
 
 function handleArrowDown(event) {

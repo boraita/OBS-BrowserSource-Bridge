@@ -7,3 +7,4 @@ import '../../core/searchBible.js';
 import '../../core/suggestBibleBooks.js';
 import '../../core/panelStyleManager.js';
 import '../../core/settings.js';
+import '../../core/resumeManager.js';

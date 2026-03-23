@@ -50,6 +50,13 @@ const BIBLE_CONFIG = {
     requiresTagCleaning: false,
     loader: () => import('../db/RVR60.sqlite'),
   },
+  pesh: {
+    name: 'pesh',
+    displayName: 'Peshita',
+    fullName: 'Peshita',
+    requiresTagCleaning: false,
+    loader: () => import('../db/Pesh.sqlite'),
+  },
 };
 
 export function getBibleList() {

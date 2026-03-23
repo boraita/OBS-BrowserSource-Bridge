@@ -14,15 +14,22 @@ function createVerseElement(verse) {
 async function searchBible(query) {
   const bblVerseDiv = document.getElementById('bible-verse');
   bblVerseDiv.innerHTML = '';
+  bblVerseDiv.classList.add('loading');
 
-  const lowercaseQuery = query.toLowerCase();
-  const versicles = await filterVersicles(lowercaseQuery);
-
-  versicles.forEach((verse, index) => {
-    const verseElement = createVerseElement(verse, index);
-    bblVerseDiv.appendChild(verseElement);
-    displayBible(verseElement, index);
-  });
+  try {
+    const versicles = await filterVersicles(query.toLowerCase());
+    bblVerseDiv.innerHTML = '';
+    versicles.forEach((verse, index) => {
+      const verseElement = createVerseElement(verse, index);
+      bblVerseDiv.appendChild(verseElement);
+      displayBible(verseElement, index);
+    });
+  } catch (error) {
+    console.error('❌ Error searching bible:', error);
+    bblVerseDiv.innerHTML = '';
+  } finally {
+    bblVerseDiv.classList.remove('loading');
+  }
 }
 
 async function filterVersicles(query) {
