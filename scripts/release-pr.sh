@@ -59,11 +59,16 @@ npm version "$BUMP" --no-git-tag-version --no-commit-hooks > /dev/null
 NEW_VERSION=$(node -p "require('./package.json').version")
 echo -e "${GREEN}✓ $OLD_VERSION → $NEW_VERSION${NC}"
 
-# ── Build ────────────────────────────────────────────────────────────────────
+# ── Build + Package ──────────────────────────────────────────────────────────
 
-echo -e "${BLUE}[2/5] Building production bundle...${NC}"
+echo -e "${BLUE}[2/5] Building and packaging...${NC}"
 pnpm build
-echo -e "${GREEN}✓ Build complete${NC}"
+./scripts/package-release.sh
+echo -e "${GREEN}✓ Build y release ZIP generados${NC}"
+
+ZIP_FILE="releases/obs-bible-stream-verses-v${NEW_VERSION}.zip"
+ZIP_SIZE=$(du -h "$ZIP_FILE" 2>/dev/null | cut -f1 || echo "?")
+echo -e "  ${BLUE}ZIP:${NC} $ZIP_FILE ($ZIP_SIZE)"
 
 # ── Commit ───────────────────────────────────────────────────────────────────
 
@@ -96,6 +101,7 @@ ${COMMITS}
 - [ ] \`pnpm typecheck\` sin errores
 - [ ] Verificado en OBS (panel + browser source)
 - [ ] Versión en \`package.json\` actualizada a v${NEW_VERSION}
+- [ ] ZIP generado en \`releases/obs-bible-stream-verses-v${NEW_VERSION}.zip\`
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 EOF
