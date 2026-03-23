@@ -80,12 +80,7 @@ if (!localStorage.getItem('fontColor')) {
 }
 
 if (!localStorage.getItem('titleColor')) {
-  const defaultTitleColor = '#000000';
-  const titleSpans = document.querySelectorAll('#messageDisplay span');
-  titleSpans.forEach((span) => {
-    span.style.color = defaultTitleColor;
-  });
-  localStorage.setItem('titleColor', defaultTitleColor);
+  localStorage.setItem('titleColor', '#000000');
 }
 
 if (!localStorage.getItem('fontFamily')) {
@@ -109,6 +104,9 @@ if (!localStorage.getItem('containerMargin')) {
 if (savedMessage) {
   messageDisplay.innerHTML = savedMessage;
 }
+
+// Single DOM query reused for all title span operations below
+const titleSpans = Array.from(document.querySelectorAll('#messageDisplay span'));
 
 if (savedBackgroundGradient) {
   bgContainer.style.background = savedBackgroundGradient;
@@ -166,86 +164,49 @@ if (savedTitleShow !== null) {
   messageDisplay.style.display = 'block';
 }
 
-const titleSpans = document.querySelectorAll('#messageDisplay span');
-if (savedTitlePositionX && titleSpans.length > 0) {
+if (titleSpans.length > 0) {
   titleSpans.forEach((span) => {
-    span.style.left = `${savedTitlePositionX}px`;
-  });
-} else if (titleSpans.length > 0) {
-  titleSpans.forEach((span) => {
-    span.style.left = '10px';
-  });
-}
-
-if (savedTitlePositionY && titleSpans.length > 0) {
-  titleSpans.forEach((span) => {
-    span.style.top = `${savedTitlePositionY}px`;
-  });
-} else if (titleSpans.length > 0) {
-  titleSpans.forEach((span) => {
-    span.style.top = '10px';
+    span.style.left = savedTitlePositionX ? `${savedTitlePositionX}px` : '10px';
+    span.style.top = savedTitlePositionY ? `${savedTitlePositionY}px` : '10px';
   });
 }
 
 const titleColor = savedTitleColor || '#ffffff';
-const dspans = document.querySelectorAll('#messageDisplay span');
-dspans.forEach((dspan) => {
-  dspan.style.color = titleColor;
+titleSpans.forEach((span) => {
+  span.style.color = titleColor;
 
-  if (dspan.classList.contains('title-with-box')) {
-    setTitleStroke(dspan, savedTitleBoxStroke);
+  if (span.classList.contains('title-with-box')) {
+    setTitleStroke(span, savedTitleBoxStroke);
   } else {
-    setTitleStroke(dspan, false);
+    setTitleStroke(span, false);
+  }
+
+  if (savedTitleFontSize) span.style.fontSize = `${savedTitleFontSize}px`;
+  if (savedTitleSpacing) span.style.letterSpacing = `${savedTitleSpacing}px`;
+  if (savedTitleFontWeight) span.style.fontWeight = savedTitleFontWeight;
+  if (savedTitleBoxMargin) span.style.marginBottom = `${savedTitleBoxMargin}px`;
+
+  if (savedTitleShadow === 'true') {
+    const shadowColor = savedTitleShadowColor || '#000000';
+    const shadowSize = savedTitleShadowSize || '2';
+    span.style.textShadow = `${shadowSize}px ${shadowSize}px 2px ${shadowColor}`;
+  }
+
+  if (savedTitleStroke === 'true') {
+    const strokeColor = savedTitleStrokeColor || '#000000';
+    const strokeWidth = savedTitleStrokeWidth || '1';
+    span.style.webkitTextStroke = `${strokeWidth}px ${strokeColor}`;
   }
 });
 
-if (
-  savedTitleFontSize ||
-  savedTitleSpacing ||
-  savedTitleFontWeight ||
-  savedTitleShadow ||
-  savedTitleBoxMargin
-) {
-  const titleSpans = document.querySelectorAll('#messageDisplay span');
-  titleSpans.forEach((span) => {
-    if (savedTitleFontSize) {
-      span.style.fontSize = `${savedTitleFontSize}px`;
-    }
-    if (savedTitleSpacing) {
-      span.style.letterSpacing = `${savedTitleSpacing}px`;
-    }
-    if (savedTitleFontWeight) {
-      span.style.fontWeight = savedTitleFontWeight;
-    }
-    if (savedTitleBoxMargin) {
-      span.style.marginBottom = `${savedTitleBoxMargin}px`;
-    }
-
-    if (savedTitleShadow === 'true') {
-      const shadowColor = savedTitleShadowColor || '#000000';
-      const shadowSize = savedTitleShadowSize || '2';
-      span.style.textShadow = `${shadowSize}px ${shadowSize}px 2px ${shadowColor}`;
-    }
-
-    if (savedTitleStroke === 'true') {
-      const strokeColor = savedTitleStrokeColor || '#000000';
-      const strokeWidth = savedTitleStrokeWidth || '1';
-      span.style.webkitTextStroke = `${strokeWidth}px ${strokeColor}`;
-    }
-  });
-}
-
 const savedTitleBox = localStorage.getItem('titleBoxEnabled');
+const savedAlignment = localStorage.getItem('titleAlignment') || 'left';
 if (savedTitleBox === 'true') {
-  const titleSpans = document.querySelectorAll('#messageDisplay span');
   titleSpans.forEach((span) => {
     span.classList.add('title-with-box');
-
     applyInitialTitleBoxStyles(span);
   });
 } else {
-  const titleSpans = document.querySelectorAll('#messageDisplay span');
-  const savedAlignment = localStorage.getItem('titleAlignment') || 'left';
   titleSpans.forEach((span) => {
     span.classList.add(`title-align-${savedAlignment}`);
     setTitleStroke(span, false);

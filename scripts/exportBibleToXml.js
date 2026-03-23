@@ -135,6 +135,15 @@ const BIBLE_CONFIG = {
     copyright: 'Copyright © 1960 by American Bible Society',
     requiresTagCleaning: false,
   },
+  pesh: {
+    name: 'Pesh',
+    fullName: 'Peshita',
+    shortName: 'Peshita',
+    publisher: '',
+    description: 'Peshita - Biblia en arameo/siríaco',
+    copyright: '',
+    requiresTagCleaning: false,
+  },
 };
 
 // =====================================================
