@@ -1,6 +1,6 @@
 {
   "name": "obs-bible-stream-verses",
-  "version": "2.3.1",
+  "version": "2.3.2",
   "description": "Plugin to display Bible verses in streaming with OBS Studio. Real-time Bible selection and search with OBS WebSocket integration.",
   "private": true,
   "scripts": {
