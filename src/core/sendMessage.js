@@ -32,12 +32,23 @@ function broadcastVerse(message) {
 }
 
 /**
+ * Escapes text for safe injection into the overlay's innerHTML.
+ * Operator-typed text (free text, list title) is otherwise plain text,
+ * never meant to carry HTML — this prevents accidental script/tag injection.
+ */
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+/**
  * Sends free-form text message to browser overlay
  * Font size will be pre-calculated automatically on receive
  */
 function sendFreeTextMessage() {
   const message = document.getElementById('messageInput').value;
-  broadcastVerse(message);
+  broadcastVerse(escapeHtml(message));
   console.log('📤 Free text sent (font size will be pre-calculated)');
 }
 
@@ -52,7 +63,7 @@ if (sendButton) {
 function handleKeyboardShortcut(event) {
   if (event.ctrlKey && event.code === 'ArrowDown') {
     const message = document.getElementById('messageInput').value;
-    broadcastVerse(message);
+    broadcastVerse(escapeHtml(message));
   }
 }
 
@@ -71,7 +82,7 @@ function sendListMessage() {
     listElement.appendChild(listItem);
   });
 
-  const message = `<span>${listTitle}</span>\n${listElement.outerHTML}`;
+  const message = `<span>${escapeHtml(listTitle)}</span>\n${listElement.outerHTML}`;
   broadcastVerse(message);
   console.log('📤 List sent (font size will be pre-calculated)');
 }

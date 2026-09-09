@@ -666,9 +666,18 @@ function loadOBSConfig() {
  * Save OBS configuration to localStorage
  */
 function handleSaveOBSConfig() {
-  const host = document.getElementById('obs-host').value.trim();
-  const port = document.getElementById('obs-port').value.trim();
-  const password = document.getElementById('obs-password').value;
+  const hostInput = document.getElementById('obs-host');
+  const portInput = document.getElementById('obs-port');
+  const passwordInput = document.getElementById('obs-password');
+
+  if (!hostInput || !portInput || !passwordInput) {
+    console.warn('⚠️ OBS config inputs not found in DOM');
+    return;
+  }
+
+  const host = hostInput.value.trim();
+  const port = portInput.value.trim();
+  const password = passwordInput.value;
 
   if (!host) {
     showNotification('❌ Host cannot be empty', 'error');

@@ -146,8 +146,8 @@ export async function searchCharacters(chapterBook) {
 
   try {
     const parts = chapterBook.trim().split(' ');
-    const lastPart = parts[parts.length - 1];
-    const hasChapterNumber = !isNaN(Number(lastPart));
+    const lastPart = parts[parts.length - 1].replace(/:\d+$/, '');
+    const hasChapterNumber = lastPart !== '' && !isNaN(Number(lastPart));
 
     const bookName = hasChapterNumber
       ? normalizeBookName(parts.slice(0, -1).join(' '))
