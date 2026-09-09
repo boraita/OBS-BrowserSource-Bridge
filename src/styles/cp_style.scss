@@ -254,6 +254,71 @@ textarea{
   color: #b5bfd4;
 }
 
+/* Pastilla de estado en la parte superior del tab Settings: si el overlay
+   está visible ahora mismo, cualquier cambio se ve en vivo. */
+.on-air-pill {
+  margin-bottom: 10px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.on-air-pill.is-off {
+  background-color: #2a2a2a;
+  color: #aaa;
+  font-weight: 400;
+}
+
+.on-air-pill.is-live {
+  background-color: rgb(200, 40, 40, 0.15);
+  color: #ff6b6b;
+  border: 1px solid rgb(200, 40, 40, 0.4);
+}
+
+/* Acordeón: cada .settings-section conserva su fondo/borde, pero su
+   contenido vive dentro de un <details> nativo con resumen de estado. */
+.settings-accordion-item {
+  width: 100%;
+}
+
+.settings-accordion-summary {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  cursor: pointer;
+  list-style-position: outside;
+  color: #007acc;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.settings-accordion-summary::-webkit-details-marker {
+  color: #007acc;
+}
+
+.settings-accordion-title {
+  white-space: nowrap;
+}
+
+.settings-accordion-state {
+  overflow: hidden;
+  color: #8b93a3;
+  font-size: 11px;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settings-accordion-body {
+  margin-top: 10px;
+}
+
 .settings-divider {
   margin: 16px 0;
   border: none;

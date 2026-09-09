@@ -164,6 +164,7 @@ async function handleBgContent() {
     bgContentBtn.innerHTML = 'Ocultar';
     setContentVisible(true);
     updateOnAirStatusUI();
+    window.refreshOnAirPill?.();
   } else {
     if (obsWebSocket.connected) {
       const autoSceneEnabled = localStorage.getItem('obsAutoSceneEnabled') === 'true';
@@ -176,6 +177,7 @@ async function handleBgContent() {
     bgContentBtn.innerHTML = 'Mostrar';
     setContentVisible(false);
     updateOnAirStatusUI();
+    window.refreshOnAirPill?.();
   }
 }
 
