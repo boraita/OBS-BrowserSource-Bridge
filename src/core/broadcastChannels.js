@@ -458,7 +458,8 @@ settingsChannel.onmessage = (event) => {
         'slide-in-top',
         'slide-in-bottom',
         'zoom-in',
-        'typewriter'
+        'typewriter',
+        'illuminate'
       );
 
       if (textAnimation && textAnimation !== 'none') {
@@ -485,6 +486,9 @@ settingsChannel.onmessage = (event) => {
             break;
           case 'typewriter':
             messageDisplay.classList.add('typewriter');
+            break;
+          case 'illuminate':
+            messageDisplay.classList.add('illuminate');
             break;
         }
       }

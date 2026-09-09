@@ -1083,6 +1083,96 @@ button:active {
   color: #e0e0e0;
 }
 
+/* Franja de estado "en directo": qué versículo está realmente visible en
+   el overlay ahora mismo, distinto de "selected" (lo último que tocaste). */
+.on-air-status {
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.on-air-status.is-empty {
+  background-color: #2a2a2a;
+  color: #888;
+  font-weight: 400;
+}
+
+.on-air-status.is-ready {
+  background-color: #2a2a2a;
+  color: #aaa;
+  font-weight: 400;
+}
+
+.on-air-status.is-live {
+  background-color: rgb(200, 40, 40, 0.15);
+  color: #ff6b6b;
+  border: 1px solid rgb(200, 40, 40, 0.4);
+}
+
+.on-air-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background-color: #ff4d4d;
+  box-shadow: 0 0 6px rgb(255, 77, 77, 0.8);
+}
+
+/* Fila actualmente en aire: distinta de .selected (azul) para no confundir
+   "lo último que clickeaste" con "lo que la audiencia ve ahora mismo". */
+#bible-verse p.on-air-row {
+  border-left-color: #ff4d4d;
+  box-shadow: 0 0 0 1px rgb(255, 77, 77, 0.4);
+}
+
+/* Encabezado de grupo cuando varios resultados caen en el mismo capítulo */
+.verse-group-header {
+  margin: 12px 0 4px;
+  padding: 4px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  color: #888;
+  border-bottom: 1px solid #3a3a3a;
+}
+
+.verse-group-header:first-child {
+  margin-top: 0;
+}
+
+/* Fila dentro de un grupo: la referencia completa ya está en el encabezado
+   (queda en el DOM, oculta, para que sendMessage.js siga leyendo el título
+   completo), así que solo se muestra un número de verso compacto. */
+#bible-verse p.grouped > span:first-child {
+  display: none;
+}
+
+#bible-verse p.grouped .verse-num-badge {
+  display: inline-block;
+  width: 22px;
+  margin-right: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #4a90e2;
+  vertical-align: top;
+  opacity: 0.75;
+}
+
+#bible-verse p.grouped .verse-text {
+  display: inline;
+  width: auto;
+  padding-top: 0;
+}
+
+#bible-verse p.grouped {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
 /* Styling for the scroll bar */
 ::-webkit-scrollbar {
   width: 12px;

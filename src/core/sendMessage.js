@@ -1,7 +1,7 @@
 import { processVerseText } from '../api/getData.js';
 import { getBibleMap } from '../config/bibleConfig.js';
 import { addEntry, isCurrentlyRecording } from './resumeManager.js';
-import { isContentVisible } from './appState.js';
+import { isContentVisible, setOnAirVerse, getOnAirVerse } from './appState.js';
 
 const messageChannel = new BroadcastChannel('myChannel');
 const historyButton = document.getElementById('history');
@@ -58,6 +58,41 @@ function sendListMessage() {
 
 document.getElementById('sendList').addEventListener('click', sendListMessage);
 document.addEventListener('keyup', handleKeyboardShortcut, false);
+
+/**
+ * Refreshes the "on air" status strip and the highlighted row so an operator
+ * can tell what's actually visible on the overlay right now, even after
+ * scrolling through a long result list or running a new search.
+ */
+function updateOnAirStatusUI() {
+  const statusEl = document.getElementById('on-air-status');
+  if (!statusEl) return;
+
+  const onAir = getOnAirVerse();
+  const visible = isContentVisible();
+
+  document.querySelectorAll('#bible-verse p.on-air-row').forEach((el) => {
+    el.classList.remove('on-air-row');
+  });
+
+  if (!onAir) {
+    statusEl.className = 'on-air-status is-empty';
+    statusEl.textContent = 'Ningún versículo mostrado todavía';
+    return;
+  }
+
+  if (visible) {
+    statusEl.className = 'on-air-status is-live';
+    statusEl.innerHTML = `<span class="on-air-dot"></span>EN DIRECTO &middot; ${onAir.label}`;
+    const rowEl = document.getElementById(onAir.id);
+    if (rowEl) {
+      rowEl.classList.add('on-air-row');
+    }
+  } else {
+    statusEl.className = 'on-air-status is-ready';
+    statusEl.textContent = `Listo para mostrar: ${onAir.label}`;
+  }
+}
 
 /**
  * Updates visual selection state of verses in the panel
@@ -150,6 +185,9 @@ function displayBible(verse, index) {
 
     updateVerseSelection(clickedVerse, index);
 
+    setOnAirVerse({ id: clickedVerse.id, label: title || versionName || 'Versículo' });
+    updateOnAirStatusUI();
+
     addToHistory(clickedVerse.id, messageHtml);
   });
 
@@ -206,4 +244,4 @@ function getLastSelectedVerse() {
   return lastSelectedVerse;
 }
 
-export { displayBible, getLastSelectedVerse };
+export { displayBible, getLastSelectedVerse, updateOnAirStatusUI };

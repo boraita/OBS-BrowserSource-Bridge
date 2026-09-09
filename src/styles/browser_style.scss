@@ -338,6 +338,35 @@ body {
     }
 }
 
+/* Aparición "Illuminate": el texto se funde a su color ya configurado
+   mientras un resplandor pasajero lo acompaña, como una mecha prendiendo.
+   currentColor hace que el resplandor siga automáticamente el color de
+   fuente que el usuario ya eligió en Settings, sin fijar un color propio.
+   Solo anima opacity/filter — nunca font-size ni padding. */
+.illuminate {
+    animation: illuminate cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes illuminate {
+    0% {
+        opacity: 0;
+        filter: drop-shadow(0 0 0 currentcolor);
+    }
+
+    38% {
+        opacity: 1;
+    }
+
+    50% {
+        filter: drop-shadow(0 0 14px currentcolor);
+    }
+
+    100% {
+        opacity: 1;
+        filter: drop-shadow(0 0 0 currentcolor);
+    }
+}
+
 /* ========================================
    RESPONSIVE
    ======================================== */

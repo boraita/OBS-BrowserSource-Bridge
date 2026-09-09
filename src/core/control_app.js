@@ -1,5 +1,5 @@
 import { searchCharacters, selectBible } from '../api/getData';
-import { displayBible, getLastSelectedVerse } from './sendMessage';
+import { displayBible, getLastSelectedVerse, updateOnAirStatusUI } from './sendMessage';
 import { getBibleOptions } from '../config/bibleConfig.js';
 import obsWebSocket from './obsWebSocket.js';
 import {
@@ -163,6 +163,7 @@ async function handleBgContent() {
     bgContent.postMessage('shown');
     bgContentBtn.innerHTML = 'Ocultar';
     setContentVisible(true);
+    updateOnAirStatusUI();
   } else {
     if (obsWebSocket.connected) {
       const autoSceneEnabled = localStorage.getItem('obsAutoSceneEnabled') === 'true';
@@ -174,6 +175,7 @@ async function handleBgContent() {
     bgContent.postMessage('hidden');
     bgContentBtn.innerHTML = 'Mostrar';
     setContentVisible(false);
+    updateOnAirStatusUI();
   }
 }
 
