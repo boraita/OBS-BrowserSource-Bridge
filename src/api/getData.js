@@ -29,7 +29,10 @@ export async function selectBible(name) {
   try {
     console.log(`📥 Loading bible: ${resolvedCode.toUpperCase()}...`);
     const bibleModule = await bible.loader();
-    const bibleFile = bibleModule.default;
+    // require.context(...,'lazy') (bibleConfig.js) doesn't always synthesize
+    // a `.default` the way a literal `import()` does — fall back to the
+    // module itself when there's no `.default`, so this works with either.
+    const bibleFile = bibleModule?.default ?? bibleModule;
 
     openedDb = await openDb(bibleFile);
     selectedBibleName = bible.name;
