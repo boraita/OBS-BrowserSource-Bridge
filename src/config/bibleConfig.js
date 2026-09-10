@@ -71,7 +71,14 @@ const BIBLE_METADATA = {
     name: 'nvic',
     displayName: 'NVI 2017',
     fullName: 'Nueva Versión Internacional 2017',
-    requiresTagCleaning: true,
+    // NVIC's <t> tags wrap the verse text itself (not just decoration like
+    // footnote markers), and removeTags() strips everything between an
+    // opening tag and the next closing tag regardless of pairing — turning
+    // requiresTagCleaning on here deletes the actual verse text. Leaving it
+    // off is safe: unknown tags (<t>, <pb/>) render invisibly in the
+    // browser, and processVerseText()'s own bracket-footnote regex already
+    // strips [1]-style markers independently of this flag.
+    requiresTagCleaning: false,
   },
 };
 
