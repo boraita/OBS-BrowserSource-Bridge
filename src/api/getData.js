@@ -243,7 +243,13 @@ function removeTags(str) {
   if (!str || str === '') return '';
 
   const text = str.toString();
-  return text.replace(/<(?!\/?i>)(?!i>).*?<\/(?!\/?i>)(?!i>).*?>|<i>|<\/i>/g, '');
+  // Self-closing tags (e.g. LBLA+'s <pb/> paragraph markers) have no closing
+  // counterpart, so they must be stripped first: otherwise the generic
+  // paired-tag pattern below treats the NEXT unrelated closing tag as this
+  // one's match, silently swallowing real words in between (e.g. "<pb/>
+  // Porque<S>1063</S>" matched as one block, deleting "Porque").
+  const withoutSelfClosingTags = text.replace(/<[a-zA-Z]+\s*\/>/g, '');
+  return withoutSelfClosingTags.replace(/<(?!\/?i>)(?!i>).*?<\/(?!\/?i>)(?!i>).*?>|<i>|<\/i>/g, '');
 }
 
 /**
