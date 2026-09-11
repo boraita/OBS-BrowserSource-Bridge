@@ -7,15 +7,6 @@
   </head>
   <body>
     <div class="main">
-      <button
-        id="theme-toggle"
-        class="theme-toggle"
-        type="button"
-        title="Cambiar tema claro/oscuro"
-        aria-label="Cambiar tema claro/oscuro"
-      >
-        🌙
-      </button>
       <div class="tab-item">
         <div id="text" class="tab-area" style="display: none">
           <div class="container">
@@ -264,7 +255,18 @@
         <div id="setBg" class="tab-area" style="display: none">
           <div class="container settings-layout">
             <div class="settings-section settings-section--wide" id="quickSettings">
-              <h3>⚡ Quick Settings</h3>
+              <div class="settings-section-header">
+                <h3>⚡ Quick Settings</h3>
+                <button
+                  id="theme-toggle"
+                  class="theme-toggle"
+                  type="button"
+                  title="Cambiar tema claro/oscuro"
+                  aria-label="Cambiar tema claro/oscuro"
+                >
+                  🌙
+                </button>
+              </div>
               <p class="settings-description">
                 Pick a minimalist preset as a starting point and tweak the basics before
                 fine-tuning.
