@@ -88,27 +88,25 @@ const SEARCH_MODE_PLACEHOLDERS = {
 };
 
 /**
- * "Referencia"/"Texto" tabs pick which searchBible.js query path runs
+ * "Ref"/"Tex" pills pick which searchBible.js query path runs
  * (book+chapter lookup vs. keyword search) — see appState.js getSearchMode().
  */
 function initSearchModeTabs() {
-  const tabsContainer = document.getElementById('search-mode-tabs');
-  const badge = document.getElementById('search-mode-badge');
+  const tabsContainer = document.getElementById('search-mode-toggle');
   const input = document.getElementById('bible-input');
   const resultCount = document.getElementById('search-result-count');
-  if (!tabsContainer || !badge || !input) return;
+  if (!tabsContainer || !input) return;
 
-  tabsContainer.querySelectorAll('.search-mode-tab').forEach((tab) => {
+  tabsContainer.querySelectorAll('.mode-pill').forEach((tab) => {
     tab.addEventListener('click', () => {
       if (tab.classList.contains('active')) return;
 
       const mode = tab.dataset.mode;
       setSearchMode(mode);
 
-      tabsContainer.querySelectorAll('.search-mode-tab').forEach((t) => t.classList.remove('active'));
+      tabsContainer.querySelectorAll('.mode-pill').forEach((t) => t.classList.remove('active'));
       tab.classList.add('active');
 
-      badge.textContent = mode === 'text' ? 'TEXTO' : 'REF';
       input.placeholder = SEARCH_MODE_PLACEHOLDERS[mode] || '';
 
       if (resultCount) {

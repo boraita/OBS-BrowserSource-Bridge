@@ -25,25 +25,24 @@
         </div>
         <div id="bibleText" class="tab-area">
           <div class="container">
-            <div class="search-mode-tabs" id="search-mode-tabs">
-              <button
-                type="button"
-                class="search-mode-tab active"
-                id="mode-reference"
-                data-mode="reference"
-              >
-                Referencia
-              </button>
-              <button type="button" class="search-mode-tab" id="mode-text" data-mode="text">
-                Texto
-              </button>
-            </div>
             <div class="bible-search">
               <div class="input-suggest">
                 <input id="bible-input" placeholder="salmo 23" />
                 <div id="suggestions"></div>
               </div>
-              <span class="search-mode-badge" id="search-mode-badge">REF</span>
+              <div class="search-mode-toggle" id="search-mode-toggle">
+                <button
+                  type="button"
+                  class="mode-pill active"
+                  id="mode-reference"
+                  data-mode="reference"
+                >
+                  Ref
+                </button>
+                <button type="button" class="mode-pill" id="mode-text" data-mode="text">
+                  Tex
+                </button>
+              </div>
               <select class="select-bible-version" id="bible-version">
                 <!-- Options populated dynamically from bibleConfig.js -->
               </select>
