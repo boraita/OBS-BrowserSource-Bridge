@@ -1663,6 +1663,15 @@ button:active {
   border-color: var(--accent);
 }
 
+/* Selected AND actually on air right now — distinct from just "active"
+   (selected but hidden), same red language as .on-air-status.is-live so
+   the operator can tell which translation the audience is seeing. */
+.bible-chip.active.live {
+  background-color: var(--live-strong);
+  border-color: var(--live-strong);
+  box-shadow: 0 0 0 1px rgb(255, 77, 77, 0.4);
+}
+
 /* ========== FIXES ADICIONALES PARA SCROLL ========== */
 
 /* Asegurar que todos los tabs tengan scroll */

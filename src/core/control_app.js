@@ -9,7 +9,7 @@ import {
   startRecording,
   stopRecording,
 } from './resumeManager.js';
-import { setContentVisible, setSearchMode } from './appState.js';
+import { setContentVisible, isContentVisible, setSearchMode } from './appState.js';
 
 const bgContent = new BroadcastChannel('bgContent');
 
@@ -78,7 +78,25 @@ function renderBibleChips() {
       bibleSelect.dispatchEvent(new Event('change'));
       chipRow.querySelectorAll('.bible-chip').forEach((c) => c.classList.remove('active'));
       chip.classList.add('active');
+      updateChipLiveState();
     });
+  });
+
+  updateChipLiveState();
+}
+
+/**
+ * Marks the active Bible chip as "live" while the overlay is showing, so
+ * the operator can tell at a glance which translation is actually on air —
+ * distinct from just "selected", which stays true even while hidden.
+ */
+function updateChipLiveState() {
+  const chipRow = document.getElementById('bible-chip-row');
+  if (!chipRow) return;
+
+  const live = isContentVisible();
+  chipRow.querySelectorAll('.bible-chip').forEach((chip) => {
+    chip.classList.toggle('live', live && chip.classList.contains('active'));
   });
 }
 
@@ -239,6 +257,7 @@ async function handleBgContent() {
     bgContentBtn.innerHTML = 'Ocultar';
     setContentVisible(true);
     updateOnAirStatusUI();
+    updateChipLiveState();
     window.refreshOnAirPill?.();
   } else {
     if (obsWebSocket.connected) {
@@ -252,6 +271,7 @@ async function handleBgContent() {
     bgContentBtn.innerHTML = 'Mostrar';
     setContentVisible(false);
     updateOnAirStatusUI();
+    updateChipLiveState();
     window.refreshOnAirPill?.();
   }
 }
