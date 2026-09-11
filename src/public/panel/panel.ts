@@ -1,5 +1,6 @@
 import '../../styles/cp_style.scss';
 import '../../styles/panel-dynamic-styles.scss';
+import '../../core/themeToggle.js';
 import '../../core/control_app.js';
 import '../../core/sendMessage.js';
 import '../../core/utils.js';
