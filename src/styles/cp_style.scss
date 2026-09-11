@@ -1071,8 +1071,9 @@ button:active {
   width: auto;
   max-width: none;
   margin: 0;
-  padding: 6px 14px;
-  font-size: 12px;
+  min-height: 40px;
+  padding: 10px 18px;
+  font-size: 14px;
   font-weight: 600;
   background-color: var(--bg-surface-2);
   color: var(--text-secondary);
@@ -1100,8 +1101,9 @@ button:active {
   align-items: stretch;
   margin: 5px 0;
   width: 100%;
+  min-height: 46px;
   flex-shrink: 0;
-  gap: 5px;
+  gap: 6px;
 }
 
 .input-suggest{
@@ -1112,9 +1114,10 @@ button:active {
 #bible-input{
   height: 100%;
   width: 100%;
-  border-radius: 5px;
+  border-radius: 6px;
   border: none;
-  padding: 0 10px;
+  padding: 0 14px;
+  font-size: 15px;
   box-sizing: border-box;
 }
 
@@ -1126,26 +1129,29 @@ button:active {
 /* Shows which search path is active right inside the input row, mirroring
    the active .search-mode-tab so the operator never loses track of it. */
 .search-mode-badge {
-  align-self: center;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
   flex-shrink: 0;
-  padding: 4px 8px;
-  font-size: 10px;
+  padding: 0 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.3px;
   color: var(--accent-alt);
   background-color: var(--bg-surface-2);
   border: 1px solid var(--border-subtle);
-  border-radius: 4px;
+  border-radius: 6px;
 }
 
 .bible-submit-btn {
   flex: 0 0 auto;
   width: auto;
   max-width: none;
+  min-width: 46px;
   margin: 0;
-  padding: 0 12px;
-  font-size: 1em;
-  border-radius: 5px;
+  padding: 0 14px;
+  font-size: 20px;
+  border-radius: 6px;
   border: none;
   background-color: #ddf;
   color: #000;
@@ -1168,15 +1174,22 @@ button:active {
 
 .history-btn{
   flex: 0 0 auto;
-  font-size: 0.9em;
+  display: flex;
+  align-items: center;
+  min-height: 46px;
+  font-size: 13px;
+  font-weight: 600;
   background-color: #252;
-  border-radius: 5px;
-  padding: 8px 14px;
+  border-radius: 6px;
+  padding: 0 16px;
   cursor: pointer;
 }
 
 .show-overlay-btn {
-  flex: 0 0 auto;
+  flex: 1;
+  min-height: 46px;
+  font-size: 16px;
+  font-weight: 700;
 }
 
 .bible{
@@ -1536,29 +1549,40 @@ button:active {
   background: #050;
 }
 
+/* Tamaños de toque pensados para dedo, no cursor: el panel vive en un
+   dock estrecho tipo móvil, así que cada fila necesita >=44px de alto. */
 #suggestions {
   position: absolute;
-  z-index: 1;
+  z-index: 20;
   list-style-type: none;
-  margin: 0;
+  margin: 4px 0 0;
   padding: 0;
-  border-top: none;
-  border-radius: 5px;
-  box-shadow: 0 3px 5px rgb(0, 0, 0, 0.3);
-  background-color: var(--bg-main);
-  max-height: 150px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  box-shadow: 0 6px 16px rgb(0, 0, 0, 0.4);
+  background-color: var(--bg-elevated);
+  max-height: 260px;
   overflow-y: auto;
   width: 100%;
-  font-size: 0.6em;
+  font-size: 15px;
 }
 
 #suggestions li {
-  padding: 10px;
+  min-height: 44px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
   cursor: pointer;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+#suggestions li:last-child {
+  border-bottom: none;
 }
 
 #suggestions li:hover {
-  background-color: var(--bg-elevated);
+  background-color: var(--bg-surface-2);
 }
 
 .selected{
@@ -1603,8 +1627,9 @@ button:active {
   width: auto;
   max-width: none;
   margin: 0;
-  padding: 6px 12px;
-  font-size: 11px;
+  min-height: 36px;
+  padding: 8px 14px;
+  font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
   background-color: var(--bg-surface-2);
