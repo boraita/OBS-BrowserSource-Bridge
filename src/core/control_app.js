@@ -9,7 +9,7 @@ import {
   startRecording,
   stopRecording,
 } from './resumeManager.js';
-import { setContentVisible } from './appState.js';
+import { setContentVisible, setSearchMode } from './appState.js';
 
 const bgContent = new BroadcastChannel('bgContent');
 const TAB_ELEMENTS = [
@@ -72,6 +72,42 @@ function renderBibleChips() {
   });
 }
 
+const SEARCH_MODE_PLACEHOLDERS = {
+  reference: 'salmo 23',
+  text: 'no se turbe',
+};
+
+/**
+ * "Referencia"/"Texto" tabs pick which searchBible.js query path runs
+ * (book+chapter lookup vs. keyword search) — see appState.js getSearchMode().
+ */
+function initSearchModeTabs() {
+  const tabsContainer = document.getElementById('search-mode-tabs');
+  const badge = document.getElementById('search-mode-badge');
+  const input = document.getElementById('bible-input');
+  const resultCount = document.getElementById('search-result-count');
+  if (!tabsContainer || !badge || !input) return;
+
+  tabsContainer.querySelectorAll('.search-mode-tab').forEach((tab) => {
+    tab.addEventListener('click', () => {
+      if (tab.classList.contains('active')) return;
+
+      const mode = tab.dataset.mode;
+      setSearchMode(mode);
+
+      tabsContainer.querySelectorAll('.search-mode-tab').forEach((t) => t.classList.remove('active'));
+      tab.classList.add('active');
+
+      badge.textContent = mode === 'text' ? 'TEXTO' : 'REF';
+      input.placeholder = SEARCH_MODE_PLACEHOLDERS[mode] || '';
+
+      if (resultCount) {
+        resultCount.hidden = true;
+      }
+    });
+  });
+}
+
 function attachBibleVersionListener() {
   const bibleVersion = document.getElementById('bible-version');
   if (bibleVersion) {
@@ -90,6 +126,7 @@ function initializeEventListeners() {
   populateBibleVersionSelect();
   attachTabListeners();
   attachBibleVersionListener();
+  initSearchModeTabs();
 }
 
 function findTabIndex(tabs, selectedTab) {

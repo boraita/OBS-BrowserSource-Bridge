@@ -25,17 +25,33 @@
         </div>
         <div id="bibleText" class="tab-area">
           <div class="container">
+            <div class="search-mode-tabs" id="search-mode-tabs">
+              <button
+                type="button"
+                class="search-mode-tab active"
+                id="mode-reference"
+                data-mode="reference"
+              >
+                Referencia
+              </button>
+              <button type="button" class="search-mode-tab" id="mode-text" data-mode="text">
+                Texto
+              </button>
+            </div>
             <div class="bible-search">
               <div class="input-suggest">
-                <input id="bible-input" placeholder="Psalm 1:1 or any verse content" />
+                <input id="bible-input" placeholder="salmo 23" />
                 <div id="suggestions"></div>
               </div>
+              <span class="search-mode-badge" id="search-mode-badge">REF</span>
               <select class="select-bible-version" id="bible-version">
                 <!-- Options populated dynamically from bibleConfig.js -->
               </select>
-              <input type="submit" id="bible-submit" value="Search" />
-              <span id="history">History</span>
+              <button type="button" id="bible-submit" class="bible-submit-btn" aria-label="Buscar">
+                ↵
+              </button>
             </div>
+            <div id="search-result-count" class="search-result-count" hidden></div>
             <div class="bible-chip-row" id="bible-chip-row">
               <!-- One chip per Bible, populated from bibleConfig.js, mirrors #bible-version -->
             </div>
@@ -47,8 +63,9 @@
                 <!-- Area where the Bible verses are rendered -->
               </div>
             </div>
-            <div class="handle-container-button">
-              <button id="bg-container-btn">Show</button>
+            <div class="panel-bottom-bar">
+              <span id="history" class="history-btn">Historial</span>
+              <button id="bg-container-btn" class="show-overlay-btn">Mostrar en overlay</button>
             </div>
           </div>
         </div>

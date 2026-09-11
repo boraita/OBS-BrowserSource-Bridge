@@ -83,10 +83,24 @@ function updateOnAirStatusUI() {
 
   if (visible) {
     statusEl.className = 'on-air-status is-live';
-    statusEl.innerHTML = `<span class="on-air-dot"></span>EN DIRECTO &middot; ${onAir.label}`;
     const rowEl = document.getElementById(onAir.id);
+    const previewText = rowEl?.querySelector('.verse-text')?.textContent.trim() || '';
+    const preview =
+      previewText.length > 60 ? `${previewText.slice(0, 60).trim()}…` : previewText;
+
+    statusEl.innerHTML = `
+      <span class="on-air-dot"></span>
+      <span class="on-air-label">EN DIRECTO</span>
+      <span class="on-air-ref">${onAir.label}</span>
+      <span class="on-air-preview">${preview}</span>
+      <button type="button" class="on-air-jump" id="on-air-jump">ir ↓</button>
+    `;
+
     if (rowEl) {
       rowEl.classList.add('on-air-row');
+      document
+        .getElementById('on-air-jump')
+        ?.addEventListener('click', () => rowEl.scrollIntoView({ behavior: 'smooth', block: 'center' }));
     }
   } else {
     statusEl.className = 'on-air-status is-ready';

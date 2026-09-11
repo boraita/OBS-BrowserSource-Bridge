@@ -1042,39 +1042,70 @@ button:active {
   }
 }
 
-.handle-container-button {
+.panel-bottom-bar {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
+  flex-direction: row;
+  justify-content: space-between;
   align-items: center;
   width: 100%;
   padding: 10px;
+  gap: 8px;
 }
 
 .tab-button:not(:last-child) {
-  margin-right: 10px; 
+  margin-right: 10px;
+}
+
+/* Referencia / Texto: picks which query path searchBible.js runs (see
+   appState.js getSearchMode()) — an explicit choice instead of guessing
+   from whether the query contains a digit. */
+.search-mode-tabs {
+  display: flex;
+  gap: 6px;
+  margin: 5px 0 0;
+  flex-shrink: 0;
+}
+
+.search-mode-tab {
+  flex: 0 0 auto;
+  width: auto;
+  max-width: none;
+  margin: 0;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  background-color: var(--bg-surface-2);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.search-mode-tab:hover {
+  border-color: var(--accent);
+  color: var(--text-primary);
+}
+
+.search-mode-tab.active {
+  background-color: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
 }
 
 .bible-search{
-  font-size: 1.5em;
+  font-size: 1em;
   display: flex;
   flex-direction: row;
-  justify-content: space-around;
+  align-items: stretch;
   margin: 5px 0;
   width: 100%;
   flex-shrink: 0;
   gap: 5px;
 }
 
-
-#bible-submit{
-  font-size: 0.6em;
-  border-radius: 5px;
-  border: none;
-  padding: 0 10px;
-}
-
 .input-suggest{
+  flex: 1;
   margin-bottom: 5px;
 }
 
@@ -1084,24 +1115,68 @@ button:active {
   border-radius: 5px;
   border: none;
   padding: 0 10px;
+  box-sizing: border-box;
 }
 
 #bible-input{
   background-color: var(--text-secondary);
   color: var(--bg-main);
-  min-width: 50%;
 }
 
-#bible-submit{
+/* Shows which search path is active right inside the input row, mirroring
+   the active .search-mode-tab so the operator never loses track of it. */
+.search-mode-badge {
+  align-self: center;
+  flex-shrink: 0;
+  padding: 4px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  color: var(--accent-alt);
+  background-color: var(--bg-surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+}
+
+.bible-submit-btn {
+  flex: 0 0 auto;
+  width: auto;
+  max-width: none;
+  margin: 0;
+  padding: 0 12px;
+  font-size: 1em;
+  border-radius: 5px;
+  border: none;
   background-color: #ddf;
   color: #000;
+  cursor: pointer;
 }
 
-#history{
-  font-size: 0.6em;
+.search-result-count {
+  margin: -2px 0 2px;
+  font-size: 11px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.verse-highlight {
+  background-color: rgb(255, 214, 0, 0.35);
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+.history-btn{
+  flex: 0 0 auto;
+  font-size: 0.9em;
   background-color: #252;
   border-radius: 5px;
-  padding: 5px;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+
+.show-overlay-btn {
+  flex: 0 0 auto;
 }
 
 .bible{
@@ -1265,14 +1340,51 @@ button:active {
   position: sticky;
   top: 0;
   z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   padding: 10px 14px;
   font-size: 13px;
   font-weight: 700;
-  text-transform: uppercase;
   background-color: rgb(200, 40, 40, 0.18);
   color: var(--live);
   border: 1px solid var(--live-strong);
   box-shadow: 0 2px 8px rgb(200, 40, 40, 0.25);
+}
+
+.on-air-status.is-live .on-air-label {
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.on-air-status.is-live .on-air-ref {
+  flex-shrink: 0;
+}
+
+.on-air-status.is-live .on-air-preview {
+  flex: 1;
+  min-width: 0;
+  font-weight: 400;
+  text-transform: none;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.on-air-status.is-live .on-air-jump {
+  flex: 0 0 auto;
+  width: auto;
+  max-width: none;
+  margin: 0;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--live);
+  background-color: transparent;
+  border: 1px solid var(--live-strong);
+  border-radius: 4px;
+  cursor: pointer;
 }
 
 .on-air-dot {
@@ -1534,7 +1646,7 @@ button:active {
 }
 
 /* Mejorar el handle del contenedor de botones */
-.handle-container-button {
+.panel-bottom-bar {
   padding: 8px;
   flex-shrink: 0;
 }

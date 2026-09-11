@@ -4,6 +4,7 @@
 
 let contentVisible = false;
 let onAirVerse = null;
+let searchMode = 'reference';
 
 export function setContentVisible(visible) {
   contentVisible = visible;
@@ -25,4 +26,16 @@ export function setOnAirVerse(verse) {
 
 export function getOnAirVerse() {
   return onAirVerse;
+}
+
+/**
+ * Which search mode the operator picked in the panel: 'reference' (book +
+ * chapter/verse lookup) or 'text' (keyword search across verse content).
+ */
+export function setSearchMode(mode) {
+  searchMode = mode === 'text' ? 'text' : 'reference';
+}
+
+export function getSearchMode() {
+  return searchMode;
 }
