@@ -1257,20 +1257,32 @@ button:active {
   font-weight: 400;
 }
 
+/* "En directo" carries real weight: sticky so it survives scrolling a long
+   result list, bigger and bolder than any other row — it answers "what is
+   the audience seeing right now", which a highlighted row alone can't do
+   once it scrolls out of view. Red lives only here and on .on-air-row. */
 .on-air-status.is-live {
-  background-color: rgb(200, 40, 40, 0.15);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  background-color: rgb(200, 40, 40, 0.18);
   color: var(--live);
-  border: 1px solid rgb(200, 40, 40, 0.4);
+  border: 1px solid var(--live-strong);
+  box-shadow: 0 2px 8px rgb(200, 40, 40, 0.25);
 }
 
 .on-air-dot {
   display: inline-block;
-  width: 8px;
-  height: 8px;
-  margin-right: 6px;
+  width: 9px;
+  height: 9px;
+  margin-right: 7px;
   border-radius: 50%;
   background-color: var(--live-strong);
-  box-shadow: 0 0 6px rgb(255, 77, 77, 0.8);
+  box-shadow: 0 0 8px rgb(255, 77, 77, 0.9);
 }
 
 /* Fila actualmente en aire: distinta de .selected (azul) para no confundir
@@ -1461,7 +1473,42 @@ button:active {
 }
 
 .select-bible-version{
-  width: 40%;
+  display: none;
+}
+
+/* Chips de biblia: reemplazo visual del <select>, que sigue existiendo
+   oculto como fuente de verdad (control_app.js lo mantiene sincronizado). */
+.bible-chip-row {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  flex-shrink: 0;
+}
+
+.bible-chip {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  background-color: var(--bg-surface-2);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.bible-chip:hover {
+  border-color: var(--accent);
+  color: var(--text-primary);
+}
+
+.bible-chip.active {
+  background-color: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
 }
 
 /* ========== FIXES ADICIONALES PARA SCROLL ========== */

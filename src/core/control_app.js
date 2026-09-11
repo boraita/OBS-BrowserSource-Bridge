@@ -32,6 +32,11 @@ function attachTabListeners() {
   });
 }
 
+/**
+ * The <select id="bible-version"> stays in the DOM (hidden) as the single
+ * source of truth every other module already reads (.value) and listens to
+ * (its 'change' event) — the chip row below is just a nicer way to drive it.
+ */
 function populateBibleVersionSelect() {
   const bibleSelect = document.getElementById('bible-version');
   if (bibleSelect) {
@@ -40,6 +45,31 @@ function populateBibleVersionSelect() {
       .map((opt) => `<option value="${opt.value}">${opt.label}</option>`)
       .join('');
   }
+  renderBibleChips();
+}
+
+function renderBibleChips() {
+  const chipRow = document.getElementById('bible-chip-row');
+  const bibleSelect = document.getElementById('bible-version');
+  if (!chipRow || !bibleSelect) return;
+
+  const options = getBibleOptions();
+  chipRow.innerHTML = options
+    .map(
+      (opt, index) =>
+        `<button type="button" class="bible-chip${index === 0 ? ' active' : ''}" data-value="${opt.value}">${opt.label}</button>`
+    )
+    .join('');
+
+  chipRow.querySelectorAll('.bible-chip').forEach((chip) => {
+    chip.addEventListener('click', () => {
+      if (chip.classList.contains('active')) return;
+      bibleSelect.value = chip.dataset.value;
+      bibleSelect.dispatchEvent(new Event('change'));
+      chipRow.querySelectorAll('.bible-chip').forEach((c) => c.classList.remove('active'));
+      chip.classList.add('active');
+    });
+  });
 }
 
 function attachBibleVersionListener() {
