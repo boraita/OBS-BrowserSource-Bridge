@@ -2,6 +2,7 @@ import { processVerseText } from '../api/getData.js';
 import { getBibleMap } from '../config/bibleConfig.js';
 import { addEntry, isCurrentlyRecording } from './resumeManager.js';
 import { isContentVisible, setOnAirVerse, getOnAirVerse } from './appState.js';
+import obsWebSocket from './obsWebSocket.js';
 
 const messageChannel = new BroadcastChannel('myChannel');
 const historyButton = document.getElementById('history');
@@ -12,12 +13,22 @@ let verseHistory = [];
 let lastSelectedVerse = null;
 
 /**
+ * Sends over BroadcastChannel and, as a fallback for OBS's Custom Dock /
+ * Browser Source partition isolation (obsproject/obs-studio#6202), also
+ * relays via OBS WebSocket's CustomEvent — see broadcastChannels.js.
+ */
+function broadcastVerse(message) {
+  messageChannel.postMessage(message);
+  obsWebSocket.broadcastCustomEvent({ channel: 'myChannel', data: message });
+}
+
+/**
  * Sends free-form text message to browser overlay
  * Font size will be pre-calculated automatically on receive
  */
 function sendFreeTextMessage() {
   const message = document.getElementById('messageInput').value;
-  messageChannel.postMessage(message);
+  broadcastVerse(message);
   console.log('📤 Free text sent (font size will be pre-calculated)');
 }
 
@@ -32,7 +43,7 @@ if (sendButton) {
 function handleKeyboardShortcut(event) {
   if (event.ctrlKey && event.code === 'ArrowDown') {
     const message = document.getElementById('messageInput').value;
-    messageChannel.postMessage(message);
+    broadcastVerse(message);
   }
 }
 
@@ -52,7 +63,7 @@ function sendListMessage() {
   });
 
   const message = `<span>${listTitle}</span>\n${listElement.outerHTML}`;
-  messageChannel.postMessage(message);
+  broadcastVerse(message);
   console.log('📤 List sent (font size will be pre-calculated)');
 }
 
@@ -193,7 +204,7 @@ function displayBible(verse, index) {
       });
     }
 
-    messageChannel.postMessage(messageHtml);
+    broadcastVerse(messageHtml);
     console.log(`📚 Sending verse with version: ${versionName}`);
     console.log('ℹ️ Font size will be pre-calculated automatically');
 

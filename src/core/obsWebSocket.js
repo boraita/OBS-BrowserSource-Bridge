@@ -27,6 +27,7 @@ class OBSWebSocketClient {
     this.onDownstreamKeyerStatusCallbacks = [];
     this.onRecordingStartedCallbacks = [];
     this.onRecordingStoppedCallbacks = [];
+    this.onCustomEventCallbacks = [];
 
     
     this.config = OBS_WEBSOCKET_CONFIG;
@@ -239,11 +240,10 @@ class OBSWebSocketClient {
       d: {
         rpcVersion: 1,
         authentication: authentication,
-        
-        
-        
-        
-        eventSubscriptions: 204,
+        // 205 = General(1) + Scenes(4) + Inputs(8) + Outputs(64) + SceneItems(128).
+        // General is required to receive CustomEvent (the cross-partition
+        // sync relay in broadcastChannels.js) — 204 omitted it.
+        eventSubscriptions: 205,
       },
     };
 
@@ -328,6 +328,10 @@ class OBSWebSocketClient {
           console.log('⏹️ OBS Recording stopped');
           this.onRecordingStoppedCallbacks.forEach((callback) => callback(eventData));
         }
+        break;
+
+      case 'CustomEvent':
+        this.onCustomEventCallbacks.forEach((callback) => callback(eventData));
         break;
     }
   }
@@ -551,6 +555,30 @@ class OBSWebSocketClient {
    */
   onRecordingStopped(callback) {
     this.onRecordingStoppedCallbacks.push(callback);
+  }
+
+  /**
+   * Register callback for a CustomEvent relayed via BroadcastCustomEvent.
+   * This is the cross-partition transport for panel<->overlay sync (see
+   * broadcastCustomEvent below and broadcastChannels.js): OBS's Custom
+   * Dock and Browser Source don't share a BroadcastChannel/localStorage
+   * partition (obsproject/obs-studio#6202), but both can reach the same
+   * OBS WebSocket server.
+   */
+  onCustomEvent(callback) {
+    this.onCustomEventCallbacks.push(callback);
+  }
+
+  /**
+   * Relays arbitrary data to every other OBS WebSocket client (panel,
+   * overlay) as a CustomEvent. No-ops silently when not connected — callers
+   * keep BroadcastChannel as their primary transport, this is a supplement.
+   */
+  broadcastCustomEvent(eventData) {
+    if (!this.connected || !this.authenticated) return;
+    this.sendRequest('BroadcastCustomEvent', { eventData }).catch((error) => {
+      console.warn('⚠️ Failed to broadcast custom event via OBS WebSocket:', error.message);
+    });
   }
 }
 

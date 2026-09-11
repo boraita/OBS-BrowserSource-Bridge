@@ -1,10 +1,21 @@
 import { hexToRgba } from './utils';
+import obsWebSocket from './obsWebSocket.js';
 
 /* ==========================================
     🎛️ DOM ELEMENTS - CONFIGURATION
     ========================================== */
 
 const settingsChannel = new BroadcastChannel('settings');
+
+/**
+ * Sends over BroadcastChannel and, as a fallback for OBS's Custom Dock /
+ * Browser Source partition isolation (obsproject/obs-studio#6202), also
+ * relays via OBS WebSocket's CustomEvent — see broadcastChannels.js.
+ */
+function broadcastSetting(data) {
+  settingsChannel.postMessage(data);
+  obsWebSocket.broadcastCustomEvent({ channel: 'settings', data });
+}
 
 const fontElement = document.getElementById('fontStyle');
 const opacityRange = document.getElementById('opacity');
@@ -85,7 +96,7 @@ function getOppositeColor(hexColor) {
 
 fontElement.addEventListener('change', function () {
   let selectedValue = fontElement.options[fontElement.selectedIndex].value;
-  settingsChannel.postMessage({ selectedFont: selectedValue });
+  broadcastSetting({ selectedFont: selectedValue });
 });
 
 opacityRange.addEventListener('input', () => {
@@ -110,7 +121,7 @@ opacityRange.addEventListener('input', () => {
   let rgbValues = bgColor.match(/\d+/g);
   if (rgbValues && rgbValues.length >= 3) {
     let newColor = `rgba(${rgbValues[0]}, ${rgbValues[1]}, ${rgbValues[2]}, ${currentOpacity})`;
-    settingsChannel.postMessage({ containerOpacity: newColor });
+    broadcastSetting({ containerOpacity: newColor });
   }
 });
 
@@ -122,14 +133,14 @@ roundedCorner.addEventListener('input', () => {
     roundedCornerDisplay.textContent = currentCorner + 'px';
   }
 
-  settingsChannel.postMessage({ roundedCorner: currentCorner });
+  broadcastSetting({ roundedCorner: currentCorner });
 });
 
 if (bgColorInput) {
   bgColorInput.addEventListener('input', function () {
     const color = bgColorInput.value;
     localStorage.setItem('bgColor', color);
-    settingsChannel.postMessage({ selectedBgColor: color });
+    broadcastSetting({ selectedBgColor: color });
   });
 }
 
@@ -137,7 +148,7 @@ if (fontColorInput) {
   fontColorInput.addEventListener('input', function () {
     const color = fontColorInput.value;
     localStorage.setItem('fontColor', color);
-    settingsChannel.postMessage({ selectedFontColor: color });
+    broadcastSetting({ selectedFontColor: color });
   });
 }
 
@@ -161,7 +172,7 @@ if (autoTitleColor) {
     if (titleColor) {
       titleColor.value = oppositeColor;
       localStorage.setItem('titleColor', oppositeColor);
-      settingsChannel.postMessage({ selectedTitleColor: oppositeColor });
+      broadcastSetting({ selectedTitleColor: oppositeColor });
     }
   });
 }
@@ -170,7 +181,7 @@ if (titleColor) {
   titleColor.addEventListener('input', function () {
     const color = titleColor.value;
     localStorage.setItem('titleColor', color);
-    settingsChannel.postMessage({ selectedTitleColor: color });
+    broadcastSetting({ selectedTitleColor: color });
   });
 }
 
@@ -179,7 +190,7 @@ if (titleFontSize) {
     const size = titleFontSize.value;
     document.getElementById('titleFontSizeDisplay').textContent = size + 'px';
     localStorage.setItem('titleFontSize', size);
-    settingsChannel.postMessage({ titleFontSize: size });
+    broadcastSetting({ titleFontSize: size });
   });
 }
 
@@ -188,7 +199,7 @@ if (titlePositionX) {
     const posX = titlePositionX.value;
     document.getElementById('titlePositionXDisplay').textContent = posX + 'px';
     localStorage.setItem('titlePositionX', posX);
-    settingsChannel.postMessage({ titlePositionX: posX });
+    broadcastSetting({ titlePositionX: posX });
   });
 }
 
@@ -197,7 +208,7 @@ if (titlePositionY) {
     const posY = titlePositionY.value;
     document.getElementById('titlePositionYDisplay').textContent = posY + 'px';
     localStorage.setItem('titlePositionY', posY);
-    settingsChannel.postMessage({ titlePositionY: posY });
+    broadcastSetting({ titlePositionY: posY });
   });
 }
 
@@ -206,7 +217,7 @@ if (titleSpacing) {
     const spacing = titleSpacing.value;
     document.getElementById('titleSpacingDisplay').textContent = spacing + 'px';
     localStorage.setItem('titleSpacing', spacing);
-    settingsChannel.postMessage({ titleSpacing: spacing });
+    broadcastSetting({ titleSpacing: spacing });
   });
 }
 
@@ -214,7 +225,7 @@ if (titleFontWeight) {
   titleFontWeight.addEventListener('change', function () {
     const weight = titleFontWeight.value;
     localStorage.setItem('titleFontWeight', weight);
-    settingsChannel.postMessage({ titleFontWeight: weight });
+    broadcastSetting({ titleFontWeight: weight });
   });
 }
 
@@ -230,7 +241,7 @@ if (titleShadow) {
     }
 
     localStorage.setItem('titleShadow', enabled);
-    settingsChannel.postMessage({ titleShadow: enabled });
+    broadcastSetting({ titleShadow: enabled });
   });
 }
 
@@ -238,7 +249,7 @@ if (titleShadowColor) {
   titleShadowColor.addEventListener('input', function () {
     const color = titleShadowColor.value;
     localStorage.setItem('titleShadowColor', color);
-    settingsChannel.postMessage({ titleShadowColor: color });
+    broadcastSetting({ titleShadowColor: color });
   });
 }
 
@@ -247,7 +258,7 @@ if (titleShadowSize) {
     const size = titleShadowSize.value;
     document.getElementById('titleShadowSizeDisplay').textContent = size + 'px';
     localStorage.setItem('titleShadowSize', size);
-    settingsChannel.postMessage({ titleShadowSize: size });
+    broadcastSetting({ titleShadowSize: size });
   });
 }
 
@@ -264,7 +275,7 @@ if (titleStroke) {
     }
 
     localStorage.setItem('titleStroke', enabled);
-    settingsChannel.postMessage({ titleStroke: enabled });
+    broadcastSetting({ titleStroke: enabled });
   });
 }
 
@@ -272,7 +283,7 @@ if (titleStrokeColor) {
   titleStrokeColor.addEventListener('input', function () {
     const color = titleStrokeColor.value;
     localStorage.setItem('titleStrokeColor', color);
-    settingsChannel.postMessage({ titleStrokeColor: color });
+    broadcastSetting({ titleStrokeColor: color });
   });
 }
 
@@ -281,7 +292,7 @@ if (titleStrokeWidth) {
     const width = titleStrokeWidth.value;
     document.getElementById('titleStrokeWidthDisplay').textContent = width + 'px';
     localStorage.setItem('titleStrokeWidth', width);
-    settingsChannel.postMessage({ titleStrokeWidth: width });
+    broadcastSetting({ titleStrokeWidth: width });
   });
 }
 
@@ -293,7 +304,7 @@ if (titleAlignment) {
   titleAlignment.addEventListener('change', function () {
     const alignment = titleAlignment.value;
     localStorage.setItem('titleAlignment', alignment);
-    settingsChannel.postMessage({ titleAlignment: alignment });
+    broadcastSetting({ titleAlignment: alignment });
   });
 }
 
@@ -301,7 +312,7 @@ if (titleBoxEnabled) {
   titleBoxEnabled.addEventListener('change', function () {
     const isEnabled = titleBoxEnabled.checked;
     localStorage.setItem('titleBoxEnabled', isEnabled);
-    settingsChannel.postMessage({ titleBoxEnabled: isEnabled });
+    broadcastSetting({ titleBoxEnabled: isEnabled });
 
     if (titleBoxControls) {
       titleBoxControls.style.display = isEnabled ? 'grid' : 'none';
@@ -328,7 +339,7 @@ if (titleBoxSize) {
     }
 
     localStorage.setItem('titleBoxSize', size);
-    settingsChannel.postMessage({ titleBoxSize: size });
+    broadcastSetting({ titleBoxSize: size });
   });
 }
 
@@ -337,7 +348,7 @@ if (titleBoxPadding) {
     const padding = titleBoxPadding.value;
     document.getElementById('titleBoxPaddingDisplay').textContent = padding + 'px';
     localStorage.setItem('titleBoxPadding', padding);
-    settingsChannel.postMessage({ titleBoxPadding: padding });
+    broadcastSetting({ titleBoxPadding: padding });
   });
 }
 
@@ -345,7 +356,7 @@ if (titleBoxFullWidth) {
   titleBoxFullWidth.addEventListener('change', function () {
     const fullWidth = titleBoxFullWidth.checked;
     localStorage.setItem('titleBoxFullWidth', fullWidth);
-    settingsChannel.postMessage({ titleBoxFullWidth: fullWidth });
+    broadcastSetting({ titleBoxFullWidth: fullWidth });
 
     if (window.panelStyleManager) {
       window.panelStyleManager.toggleTitleBoxFullWidthControls(fullWidth);
@@ -367,7 +378,7 @@ if (titleBoxWidth) {
     const display = document.getElementById('titleBoxWidthDisplay');
     if (display) display.textContent = width + '%';
     localStorage.setItem('titleBoxWidth', width);
-    settingsChannel.postMessage({ titleBoxWidth: width });
+    broadcastSetting({ titleBoxWidth: width });
   });
 }
 
@@ -376,7 +387,7 @@ if (titleFullWidthAlignment) {
   titleFullWidthAlignment.addEventListener('change', function () {
     const alignment = titleFullWidthAlignment.value;
     localStorage.setItem('titleFullWidthAlignment', alignment);
-    settingsChannel.postMessage({ titleFullWidthAlignment: alignment });
+    broadcastSetting({ titleFullWidthAlignment: alignment });
     console.log(`📐 Title alignment changed to: ${alignment}`);
   });
 }
@@ -385,7 +396,7 @@ if (titleBoxColor) {
   titleBoxColor.addEventListener('input', function () {
     const color = titleBoxColor.value;
     localStorage.setItem('titleBoxColor', color);
-    settingsChannel.postMessage({ titleBoxColor: color });
+    broadcastSetting({ titleBoxColor: color });
   });
 }
 
@@ -393,7 +404,7 @@ if (titleBoxStroke) {
   titleBoxStroke.addEventListener('change', function () {
     const enabled = titleBoxStroke.checked;
     localStorage.setItem('titleBoxStroke', enabled);
-    settingsChannel.postMessage({ titleBoxStroke: enabled });
+    broadcastSetting({ titleBoxStroke: enabled });
   });
 }
 
@@ -402,7 +413,7 @@ if (titleBoxOpacity) {
     const opacity = titleBoxOpacity.value;
     document.getElementById('titleBoxOpacityDisplay').textContent = opacity + '%';
     localStorage.setItem('titleBoxOpacity', opacity);
-    settingsChannel.postMessage({ titleBoxOpacity: opacity });
+    broadcastSetting({ titleBoxOpacity: opacity });
   });
 }
 
@@ -411,7 +422,7 @@ if (titleBoxBorder) {
     const border = titleBoxBorder.value;
     document.getElementById('titleBoxBorderDisplay').textContent = border + 'px';
     localStorage.setItem('titleBoxBorder', border);
-    settingsChannel.postMessage({ titleBoxBorder: border });
+    broadcastSetting({ titleBoxBorder: border });
   });
 }
 
@@ -419,7 +430,7 @@ if (titleBoxBorderColor) {
   titleBoxBorderColor.addEventListener('input', function () {
     const borderColor = titleBoxBorderColor.value;
     localStorage.setItem('titleBoxBorderColor', borderColor);
-    settingsChannel.postMessage({ titleBoxBorderColor: borderColor });
+    broadcastSetting({ titleBoxBorderColor: borderColor });
   });
 }
 
@@ -428,7 +439,7 @@ if (titleBoxRadius) {
     const radius = titleBoxRadius.value;
     document.getElementById('titleBoxRadiusDisplay').textContent = radius + 'px';
     localStorage.setItem('titleBoxRadius', radius);
-    settingsChannel.postMessage({ titleBoxRadius: radius });
+    broadcastSetting({ titleBoxRadius: radius });
   });
 }
 
@@ -436,7 +447,7 @@ if (titleBoxBlur) {
   titleBoxBlur.addEventListener('change', function () {
     const blur = titleBoxBlur.checked;
     localStorage.setItem('titleBoxBlur', blur);
-    settingsChannel.postMessage({ titleBoxBlur: blur });
+    broadcastSetting({ titleBoxBlur: blur });
   });
 }
 
@@ -1024,11 +1035,11 @@ if (resetAllSettingsBtn) {
 
       localStorage.setItem('fontFamily', 'Poppins');
 
-      settingsChannel.postMessage({ titleShow: true });
-      settingsChannel.postMessage({ selectedFontColor: '#000000' });
-      settingsChannel.postMessage({ selectedTitleColor: '#000000' });
-      settingsChannel.postMessage({ selectedBgColor: 'rgba(255, 255, 255, 1)' });
-      settingsChannel.postMessage({ selectedFont: 'Poppins' });
+      broadcastSetting({ titleShow: true });
+      broadcastSetting({ selectedFontColor: '#000000' });
+      broadcastSetting({ selectedTitleColor: '#000000' });
+      broadcastSetting({ selectedBgColor: 'rgba(255, 255, 255, 1)' });
+      broadcastSetting({ selectedFont: 'Poppins' });
 
       window.location.reload();
     }
@@ -1386,7 +1397,7 @@ if (containerPadding) {
       paddingDisplay.textContent = padding + 'px';
     }
     localStorage.setItem('containerPadding', padding);
-    settingsChannel.postMessage({ containerPadding: padding });
+    broadcastSetting({ containerPadding: padding });
   });
 }
 
@@ -1398,7 +1409,7 @@ if (containerMargin) {
       marginDisplay.textContent = margin + 'px';
     }
     localStorage.setItem('containerMargin', margin);
-    settingsChannel.postMessage({ containerMargin: margin });
+    broadcastSetting({ containerMargin: margin });
   });
 }
 
@@ -1424,7 +1435,7 @@ if (boldButton) {
     }
 
     localStorage.setItem('boldState', newBoldState);
-    settingsChannel.postMessage({ currentBoldState: newBoldState });
+    broadcastSetting({ currentBoldState: newBoldState });
   });
 }
 
@@ -1447,7 +1458,7 @@ if (italicButton) {
     }
 
     localStorage.setItem('italicState', newItalicState);
-    settingsChannel.postMessage({ currentItalicState: newItalicState });
+    broadcastSetting({ currentItalicState: newItalicState });
   });
 }
 
@@ -1470,7 +1481,7 @@ if (underlineButton) {
     }
 
     localStorage.setItem('underlineState', newUnderlineState);
-    settingsChannel.postMessage({ currentUnderlineState: newUnderlineState });
+    broadcastSetting({ currentUnderlineState: newUnderlineState });
   });
 }
 
@@ -1484,7 +1495,7 @@ if (textAlignElement) {
   textAlignElement.addEventListener('change', function () {
     let selectedValue = textAlignElement.options[textAlignElement.selectedIndex].value;
     localStorage.setItem('textAlign', selectedValue);
-    settingsChannel.postMessage({ selectedTextAlignment: selectedValue });
+    broadcastSetting({ selectedTextAlignment: selectedValue });
   });
 }
 
@@ -1510,7 +1521,7 @@ if (backgroundTypeSelect) {
     }
 
     localStorage.setItem('backgroundType', type);
-    settingsChannel.postMessage({ backgroundType: type });
+    broadcastSetting({ backgroundType: type });
     updateBackgroundGradient();
   });
 }
@@ -1563,7 +1574,7 @@ function updateBackgroundGradient() {
   }
 
   localStorage.setItem('backgroundGradient', gradient);
-  settingsChannel.postMessage({ backgroundGradient: gradient });
+  broadcastSetting({ backgroundGradient: gradient });
 }
 
 if (textColorType) {
@@ -1601,10 +1612,10 @@ function updateTextGradient() {
   if (isGradient) {
     const gradient = `linear-gradient(45deg, ${color1}, ${color2})`;
     localStorage.setItem('textGradient', gradient);
-    settingsChannel.postMessage({ textGradient: gradient });
+    broadcastSetting({ textGradient: gradient });
   } else {
     localStorage.setItem('textGradient', '');
-    settingsChannel.postMessage({ textGradient: null });
+    broadcastSetting({ textGradient: null });
   }
 }
 
@@ -1629,7 +1640,7 @@ function toggleTextShadowControls() {
     updateTextShadow();
   } else {
     localStorage.setItem('textShadow', '');
-    settingsChannel.postMessage({ textShadow: 'none' });
+    broadcastSetting({ textShadow: 'none' });
   }
 }
 
@@ -1641,7 +1652,7 @@ function updateTextShadow() {
 
   const shadow = `${x}px ${y}px ${blur}px ${color}`;
   localStorage.setItem('textShadow', shadow);
-  settingsChannel.postMessage({ textShadow: shadow });
+  broadcastSetting({ textShadow: shadow });
 
   const shadowXDisplay = document.getElementById('shadowXDisplay');
   const shadowYDisplay = document.getElementById('shadowYDisplay');
@@ -1680,7 +1691,7 @@ function toggleTextStrokeControls() {
     updateTextStroke();
   } else {
     localStorage.removeItem('textStroke');
-    settingsChannel.postMessage({ textStroke: null });
+    broadcastSetting({ textStroke: null });
   }
 }
 
@@ -1690,7 +1701,7 @@ function updateTextStroke() {
 
   const strokeData = { color: color, width: width + 'px' };
   localStorage.setItem('textStroke', JSON.stringify(strokeData));
-  settingsChannel.postMessage({ textStroke: strokeData });
+  broadcastSetting({ textStroke: strokeData });
 
   const strokeWidthDisplay = document.getElementById('strokeWidthDisplay');
   if (strokeWidthDisplay) {
@@ -1726,7 +1737,7 @@ function toggleTextGlowControls() {
     updateTextGlow();
   } else {
     localStorage.setItem('textGlow', '');
-    settingsChannel.postMessage({ textGlow: null });
+    broadcastSetting({ textGlow: null });
   }
 }
 
@@ -1736,7 +1747,7 @@ function updateTextGlow() {
 
   const glow = `0 0 ${intensity}px ${color}, 0 0 ${intensity * 2}px ${color}`;
   localStorage.setItem('textGlow', glow);
-  settingsChannel.postMessage({ textGlow: glow });
+  broadcastSetting({ textGlow: glow });
 
   const glowIntensityDisplay = document.getElementById('glowIntensityDisplay');
   if (glowIntensityDisplay) {
@@ -1759,7 +1770,7 @@ if (textAnimation) {
     localStorage.setItem('textAnimation', animation);
     localStorage.setItem('animationDuration', animationDuration ? animationDuration.value : '1');
 
-    settingsChannel.postMessage({
+    broadcastSetting({
       textAnimation: animation,
       animationDuration: duration,
     });
@@ -1778,7 +1789,7 @@ if (animationDuration) {
 
     localStorage.setItem('animationDuration', duration);
 
-    settingsChannel.postMessage({
+    broadcastSetting({
       textAnimation: animation,
       animationDuration: duration + 's',
     });

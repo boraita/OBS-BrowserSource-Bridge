@@ -12,6 +12,16 @@ import {
 import { setContentVisible, setSearchMode } from './appState.js';
 
 const bgContent = new BroadcastChannel('bgContent');
+
+/**
+ * Sends over BroadcastChannel and, as a fallback for OBS's Custom Dock /
+ * Browser Source partition isolation (obsproject/obs-studio#6202), also
+ * relays via OBS WebSocket's CustomEvent — see broadcastChannels.js.
+ */
+function broadcastVisibility(state) {
+  bgContent.postMessage(state);
+  obsWebSocket.broadcastCustomEvent({ channel: 'bgContent', data: state });
+}
 const TAB_ELEMENTS = [
   'tab-text',
   'tab-bibleText',
@@ -227,7 +237,7 @@ async function handleBgContent() {
       }
     }
 
-    bgContent.postMessage('shown');
+    broadcastVisibility('shown');
     bgContentBtn.innerHTML = 'Ocultar';
     setContentVisible(true);
     updateOnAirStatusUI();
@@ -240,7 +250,7 @@ async function handleBgContent() {
       }
     }
 
-    bgContent.postMessage('hidden');
+    broadcastVisibility('hidden');
     bgContentBtn.innerHTML = 'Mostrar';
     setContentVisible(false);
     updateOnAirStatusUI();
@@ -292,7 +302,7 @@ function createStatusContainer() {
 }
 
 function initializeBrowserVisibility() {
-  bgContent.postMessage('hidden');
+  broadcastVisibility('hidden');
 
   if (bgContentBtn) {
     bgContentBtn.innerHTML = 'Mostrar';

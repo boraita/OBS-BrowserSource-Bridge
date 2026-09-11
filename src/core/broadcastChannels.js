@@ -1,4 +1,5 @@
 import { processVerseText } from '../api/getData.js';
+import obsWebSocket from './obsWebSocket.js';
 
 const containerElement = document.getElementById('bg-container');
 const messageDisplay = document.getElementById('messageDisplay');
@@ -140,7 +141,14 @@ function applyTitleBoxState() {
  * Handles incoming text messages and displays them with pre-calculated font size
  * This is the main message receiver for verse display
  */
-messageChannel.onmessage = (event) => {
+/**
+ * Named (not inline) so the OBS WebSocket CustomEvent relay below can call
+ * the exact same logic BroadcastChannel uses — the Custom Dock and the
+ * Browser Source live in separate storage/messaging partitions in recent
+ * OBS versions (obsproject/obs-studio#6202), so BroadcastChannel alone
+ * never reaches this page when both run for real inside OBS.
+ */
+function handleVerseMessage(event) {
   const message = typeof event.data === 'string' ? processVerseText(event.data) : event.data;
 
   console.log('📨 Message received, pre-calculating font size...');
@@ -183,9 +191,11 @@ messageChannel.onmessage = (event) => {
   messageDisplay.style.opacity = '1';
 
   console.log('✅ Text received with pre-calculated size');
-};
+}
 
-settingsChannel.onmessage = (event) => {
+messageChannel.onmessage = handleVerseMessage;
+
+function handleSettingsMessage(event) {
   switch (Object.keys(event.data)?.[0]) {
     case 'selectedFont':
       const selectedFont = event.data['selectedFont'];
@@ -497,9 +507,11 @@ settingsChannel.onmessage = (event) => {
       localStorage.setItem('animationDuration', animationDuration);
       break;
   }
-};
+}
 
-visibilityChannel.onmessage = (event) => {
+settingsChannel.onmessage = handleSettingsMessage;
+
+function handleVisibilityMessage(event) {
   if (event.data === 'hidden') {
     containerElement.style.display = 'none';
     console.log('🙈 Container hidden');
@@ -511,7 +523,9 @@ visibilityChannel.onmessage = (event) => {
     }
     console.log('👁️ Container shown');
   }
-};
+}
+
+visibilityChannel.onmessage = handleVisibilityMessage;
 
 fontAdjustChannel.onmessage = (event) => {
   if (event.data === 'adjust') {
@@ -523,6 +537,33 @@ fontAdjustChannel.onmessage = (event) => {
     }
   }
 };
+
+/**
+ * Relays the same three channels over OBS WebSocket's CustomEvent
+ * mechanism, which crosses the Custom Dock / Browser Source partition
+ * boundary that BroadcastChannel cannot. BroadcastChannel stays wired
+ * above too, so this page keeps working standalone in a plain browser
+ * (e.g. the Playwright smoke tests) without OBS WebSocket running.
+ */
+const SYNC_CHANNEL_HANDLERS = {
+  myChannel: handleVerseMessage,
+  bgContent: handleVisibilityMessage,
+  settings: handleSettingsMessage,
+};
+
+obsWebSocket.onCustomEvent((eventData) => {
+  const handler = eventData && SYNC_CHANNEL_HANDLERS[eventData.channel];
+  if (handler) {
+    handler({ data: eventData.data });
+  }
+});
+
+obsWebSocket.connect().catch((error) => {
+  console.warn(
+    '⚠️ Overlay could not connect to OBS WebSocket, falling back to BroadcastChannel only:',
+    error.message
+  );
+});
 
 function applyTitleBoxStyles(titleSpan) {
   const configs = {
