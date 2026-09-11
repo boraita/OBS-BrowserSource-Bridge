@@ -1613,12 +1613,17 @@ button:active {
 }
 
 /* Chips de biblia: reemplazo visual del <select>, que sigue existiendo
-   oculto como fuente de verdad (control_app.js lo mantiene sincronizado). */
+   oculto como fuente de verdad (control_app.js lo mantiene sincronizado).
+   flex-wrap (no scroll horizontal) para que las 9 biblias queden visibles
+   de un vistazo: más fácil elegir que tener que descubrir un scroll oculto.
+   min-width: 0 evita que este item empuje de ancho al .container padre
+   (gotcha clásico de flex-direction: column, que si no lo forzaba a 999px
+   y generaba una barra de scroll horizontal en toda la página). */
 .bible-chip-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
-  overflow-x: auto;
-  padding-bottom: 2px;
+  min-width: 0;
   flex-shrink: 0;
 }
 
