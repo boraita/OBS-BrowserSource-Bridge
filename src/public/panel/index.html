@@ -257,15 +257,25 @@
             <div class="settings-section settings-section--wide" id="quickSettings">
               <div class="settings-section-header">
                 <h3>⚡ Quick Settings</h3>
-                <button
-                  id="theme-toggle"
-                  class="theme-toggle"
-                  type="button"
-                  title="Cambiar tema claro/oscuro"
-                  aria-label="Cambiar tema claro/oscuro"
-                >
-                  🌙
-                </button>
+                <div class="settings-section-header-actions">
+                  <button
+                    id="resyncSettingsBtn"
+                    class="button-inline"
+                    type="button"
+                    title="Reenviar toda la apariencia actual al overlay (útil si acaba de cargar en OBS)"
+                  >
+                    🔄 Reenviar al overlay
+                  </button>
+                  <button
+                    id="theme-toggle"
+                    class="theme-toggle"
+                    type="button"
+                    title="Cambiar tema claro/oscuro"
+                    aria-label="Cambiar tema claro/oscuro"
+                  >
+                    🌙
+                  </button>
+                </div>
               </div>
               <p class="settings-description">
                 Pick a minimalist preset as a starting point and tweak the basics before

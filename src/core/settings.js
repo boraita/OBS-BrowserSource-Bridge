@@ -1046,6 +1046,34 @@ if (resetAllSettingsBtn) {
   });
 }
 
+/**
+ * Re-sends every current setting to the overlay by replaying the same
+ * input/change events each control already reacts to (see applyPreset
+ * below for the same pattern) — without touching any value.
+ *
+ * Needed because the overlay only ever *receives* settings live; it never
+ * had a way to ask "what's the current config?". A fresh Browser Source
+ * in OBS starts from CSS defaults until every control here fires at least
+ * once, so this is the one-click way to push the panel's current look
+ * over (also useful after the overlay reconnects to OBS WebSocket).
+ */
+function resyncSettingsToOverlay() {
+  const setBgTab = document.getElementById('setBg');
+  if (!setBgTab) return;
+
+  setBgTab.querySelectorAll('input, select').forEach((element) => {
+    element.dispatchEvent(new Event('input', { bubbles: true }));
+    element.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+
+  console.log('🔄 Settings resynced to overlay');
+}
+
+const resyncSettingsBtn = document.getElementById('resyncSettingsBtn');
+if (resyncSettingsBtn) {
+  resyncSettingsBtn.addEventListener('click', resyncSettingsToOverlay);
+}
+
 function applyPreset(preset) {
   if (!preset) return;
 
