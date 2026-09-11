@@ -144,11 +144,18 @@ export function getBibleLoader(code) {
   return BIBLE_CONFIG[code]?.loader;
 }
 
+// Bibles sort alphabetically by filename by default (via require.context);
+// pin specific codes to the end of that order here when an operator wants
+// a different position, without disturbing everything else's order.
+const PINNED_LAST = ['btx'];
+
 export function getBibleOptions() {
-  return Object.entries(BIBLE_CONFIG).map(([code, config]) => ({
+  const options = Object.entries(BIBLE_CONFIG).map(([code, config]) => ({
     value: code,
     label: config.displayName,
   }));
+
+  return options.sort((a, b) => PINNED_LAST.includes(a.value) - PINNED_LAST.includes(b.value));
 }
 
 // Generate BIBLE_MAP dynamically from configuration
