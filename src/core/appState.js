@@ -4,6 +4,7 @@
 
 let contentVisible = false;
 let onAirVerse = null;
+let onAirBibleCode = null;
 let searchMode = 'reference';
 
 export function setContentVisible(visible) {
@@ -26,6 +27,19 @@ export function setOnAirVerse(verse) {
 
 export function getOnAirVerse() {
   return onAirVerse;
+}
+
+/**
+ * Which Bible version the on-air verse was actually sent from — distinct
+ * from "currently selected chip", which can change (e.g. the operator
+ * browsing another translation) without anything new having been shown yet.
+ */
+export function setOnAirBibleCode(code) {
+  onAirBibleCode = code ? code.toLowerCase() : null;
+}
+
+export function getOnAirBibleCode() {
+  return onAirBibleCode;
 }
 
 /**

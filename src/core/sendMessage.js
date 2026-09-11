@@ -1,7 +1,12 @@
 import { processVerseText } from '../api/getData.js';
 import { getBibleMap } from '../config/bibleConfig.js';
 import { addEntry, isCurrentlyRecording } from './resumeManager.js';
-import { isContentVisible, setOnAirVerse, getOnAirVerse } from './appState.js';
+import {
+  isContentVisible,
+  setOnAirVerse,
+  getOnAirVerse,
+  setOnAirBibleCode,
+} from './appState.js';
 import obsWebSocket from './obsWebSocket.js';
 
 const messageChannel = new BroadcastChannel('myChannel');
@@ -211,7 +216,9 @@ function displayBible(verse, index) {
     updateVerseSelection(clickedVerse, index);
 
     setOnAirVerse({ id: clickedVerse.id, label: title || versionName || 'Versículo' });
+    setOnAirBibleCode(versionCode);
     updateOnAirStatusUI();
+    window.refreshChipLiveState?.();
 
     addToHistory(clickedVerse.id, messageHtml);
   });

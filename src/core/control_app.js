@@ -9,7 +9,12 @@ import {
   startRecording,
   stopRecording,
 } from './resumeManager.js';
-import { setContentVisible, isContentVisible, setSearchMode } from './appState.js';
+import {
+  setContentVisible,
+  isContentVisible,
+  getOnAirBibleCode,
+  setSearchMode,
+} from './appState.js';
 
 const bgContent = new BroadcastChannel('bgContent');
 
@@ -86,19 +91,24 @@ function renderBibleChips() {
 }
 
 /**
- * Marks the active Bible chip as "live" while the overlay is showing, so
- * the operator can tell at a glance which translation is actually on air —
- * distinct from just "selected", which stays true even while hidden.
+ * Marks the Bible chip the on-air verse actually came from as "live" while
+ * the overlay is showing — NOT just "whichever chip is selected right now".
+ * Switching chips to browse another translation doesn't change what's
+ * actually on the overlay until a verse from it gets clicked, so the two
+ * must be tracked separately (see appState.js setOnAirBibleCode).
  */
 function updateChipLiveState() {
   const chipRow = document.getElementById('bible-chip-row');
   if (!chipRow) return;
 
   const live = isContentVisible();
+  const onAirCode = getOnAirBibleCode();
   chipRow.querySelectorAll('.bible-chip').forEach((chip) => {
-    chip.classList.toggle('live', live && chip.classList.contains('active'));
+    chip.classList.toggle('live', live && chip.dataset.value?.toLowerCase() === onAirCode);
   });
 }
+
+window.refreshChipLiveState = updateChipLiveState;
 
 const SEARCH_MODE_PLACEHOLDERS = {
   reference: 'salmo 23',

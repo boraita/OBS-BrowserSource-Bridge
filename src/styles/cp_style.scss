@@ -1663,12 +1663,14 @@ button:active {
   border-color: var(--accent);
 }
 
-/* Selected AND actually on air right now — distinct from just "active"
-   (selected but hidden), same red language as .on-air-status.is-live so
-   the operator can tell which translation the audience is seeing. */
-.bible-chip.active.live {
+/* The Bible actually on air right now — independent of .active (merely
+   "selected"): browsing to another translation without showing a verse
+   from it keeps this chip red, so the operator always knows what the
+   audience is seeing. Same red language as .on-air-status.is-live. */
+.bible-chip.live {
   background-color: var(--live-strong);
   border-color: var(--live-strong);
+  color: #fff;
   box-shadow: 0 0 0 1px rgb(255, 77, 77, 0.4);
 }
 
