@@ -22,10 +22,19 @@ body {
     overflow-y: hidden;
 }
 
-/* Transiciones suaves globales */
+/* Transiciones suaves para ajustes de estilo (color/fondo/sombra),
+   excluyendo font-size y padding: esas cambian por verso via el
+   algoritmo de auto-ajuste y deben aplicarse al instante, sin animar
+   un "crecimiento" visible del texto (ni del padding que reserva
+   espacio para el título) en cada verso nuevo. */
 #messageDisplay,
 .bg-container {
-    transition: all 0.3s ease-in-out;
+    transition:
+        color 0.3s ease-in-out,
+        background 0.3s ease-in-out,
+        background-color 0.3s ease-in-out,
+        text-shadow 0.3s ease-in-out,
+        opacity 0.3s ease-in-out;
 }
 
 /* ========================================

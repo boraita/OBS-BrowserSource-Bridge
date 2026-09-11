@@ -182,6 +182,13 @@ function handleVerseMessage(event) {
 
   localStorage.setItem('savedMessage', message);
 
+  // updateMessagePadding() (below) decides the title's reserved top space by
+  // checking for this class — it used to only get added later, by the
+  // separate ResizeObserver-driven styleManager path (browser_app.js), so
+  // padding briefly applied as if there were no title on every verse change.
+  messageDisplay.classList.toggle('message-with-title', hasTitle);
+  messageDisplay.classList.toggle('message-without-title', !hasTitle);
+
   applyTitleConfiguration();
   applyTitleBoxState();
 
