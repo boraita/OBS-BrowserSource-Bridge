@@ -131,7 +131,9 @@ async function searchBible(query) {
 }
 
 async function filterVersicles(query) {
-  return getSearchMode() === 'text' ? await searchInBibleText(query) : await searchCharacters(query);
+  return getSearchMode() === 'text'
+    ? await searchInBibleText(query)
+    : await searchCharacters(query);
 }
 
 async function handleSearch(event) {

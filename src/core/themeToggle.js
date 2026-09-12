@@ -23,7 +23,8 @@ function initThemeToggle() {
   if (!button) return;
 
   button.addEventListener('click', () => {
-    const current = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+    const current =
+      document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
     const next = current === 'light' ? 'dark' : 'light';
     localStorage.setItem(THEME_KEY, next);
     applyTheme(next);

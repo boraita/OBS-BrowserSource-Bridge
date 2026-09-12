@@ -20,7 +20,6 @@ class OBSWebSocketClient {
     this.messageId = 1;
     this.pendingRequests = new Map();
 
-    
     this.onConnectedCallbacks = [];
     this.onDisconnectedCallbacks = [];
     this.onSceneChangedCallbacks = [];
@@ -29,7 +28,6 @@ class OBSWebSocketClient {
     this.onRecordingStoppedCallbacks = [];
     this.onCustomEventCallbacks = [];
 
-    
     this.config = OBS_WEBSOCKET_CONFIG;
 
     loadWebSocketConfig();
@@ -44,7 +42,6 @@ class OBSWebSocketClient {
       return Promise.resolve();
     }
 
-    
     if (this.ws) {
       this.ws.close();
       this.ws = null;
@@ -52,7 +49,6 @@ class OBSWebSocketClient {
 
     return new Promise((resolve, reject) => {
       try {
-        
         loadWebSocketConfig();
 
         const url = getWebSocketUrl();
@@ -60,11 +56,9 @@ class OBSWebSocketClient {
 
         this.ws = new WebSocket(url);
 
-        
         this._connectResolve = resolve;
         this._connectReject = reject;
 
-        
         const connectionTimeout = setTimeout(() => {
           if (!this.connected) {
             this._connectReject = null;
@@ -74,7 +68,7 @@ class OBSWebSocketClient {
               this.ws.close();
             }
           }
-        }, 10000); 
+        }, 10000);
 
         this.ws.onopen = () => {
           clearTimeout(connectionTimeout);
@@ -110,13 +104,11 @@ class OBSWebSocketClient {
   disconnect() {
     console.log('🔌 Disconnecting from OBS WebSocket...');
 
-    
     if (this.reconnectTimeout) {
       clearTimeout(this.reconnectTimeout);
       this.reconnectTimeout = null;
     }
 
-    
     this.reconnectAttempts = OBS_WEBSOCKET_CONFIG.maxReconnectAttempts;
 
     if (this.ws) {
@@ -146,21 +138,20 @@ class OBSWebSocketClient {
     try {
       const message = JSON.parse(event.data);
 
-      
       switch (message.op) {
-        case 0: 
+        case 0:
           await this.handleHello(message.d);
           break;
 
-        case 2: 
+        case 2:
           this.handleIdentified(message.d);
           break;
 
-        case 7: 
+        case 7:
           this.handleRequestResponse(message.d);
           break;
 
-        case 5: 
+        case 5:
           this.handleEvent(message.d);
           break;
 
@@ -181,11 +172,9 @@ class OBSWebSocketClient {
     console.log('Password configured:', !!OBS_WEBSOCKET_CONFIG.password);
 
     if (!data.authentication) {
-      
       console.log('🔓 No authentication required, sending Identify...');
       this.sendIdentify();
     } else if (!OBS_WEBSOCKET_CONFIG.password) {
-      
       console.error('❌ OBS requires a password but none is configured!');
       if (this._connectReject) {
         this._connectReject(
@@ -196,7 +185,6 @@ class OBSWebSocketClient {
       }
       this.disconnect();
     } else {
-      
       console.log('🔐 Authenticating with password...');
       const auth = await this.generateAuthResponse(
         data.authentication.challenge,
@@ -212,10 +200,8 @@ class OBSWebSocketClient {
   async generateAuthResponse(challenge, salt) {
     const password = OBS_WEBSOCKET_CONFIG.password;
 
-    
     const secret = await this.sha256(password + salt);
 
-    
     const auth = await this.sha256(secret + challenge);
 
     return auth;
@@ -257,17 +243,14 @@ class OBSWebSocketClient {
     console.log('✅ Successfully identified with OBS');
     this.authenticated = true;
 
-    
     if (this._connectResolve) {
       this._connectResolve();
       this._connectResolve = null;
       this._connectReject = null;
     }
 
-    
     this.onConnectedCallbacks.forEach((callback) => callback());
 
-    
     this.getCurrentScene();
   }
 
@@ -304,16 +287,12 @@ class OBSWebSocketClient {
         break;
 
       case 'SceneItemEnableStateChanged':
-        
         if (eventData.sceneItemEnabled !== undefined) {
           this.onDownstreamKeyerStatusCallbacks.forEach((callback) => callback(eventData));
         }
         break;
 
       case 'RecordStateChanged':
-        
-        
-        
         console.log('🎥 RecordStateChanged event:', eventData);
         if (
           eventData.outputState === 'OBS_WEBSOCKET_OUTPUT_STARTED' ||
@@ -355,10 +334,8 @@ class OBSWebSocketClient {
     this.connected = false;
     this.authenticated = false;
 
-    
     this.onDisconnectedCallbacks.forEach((callback) => callback());
 
-    
     this.scheduleReconnect();
   }
 
@@ -366,7 +343,6 @@ class OBSWebSocketClient {
    * Schedule reconnection attempt
    */
   scheduleReconnect() {
-    
     if (this.reconnectAttempts >= OBS_WEBSOCKET_CONFIG.maxReconnectAttempts) {
       console.log('ℹ️ Not reconnecting (max attempts reached or manually disconnected)');
       return;
@@ -410,7 +386,7 @@ class OBSWebSocketClient {
       this.pendingRequests.set(requestId, { resolve, reject });
 
       const message = {
-        op: 6, 
+        op: 6,
         d: {
           requestType,
           requestId,
@@ -420,7 +396,6 @@ class OBSWebSocketClient {
 
       this.send(message);
 
-      
       setTimeout(() => {
         if (this.pendingRequests.has(requestId)) {
           this.pendingRequests.delete(requestId);
@@ -486,7 +461,6 @@ class OBSWebSocketClient {
 
       const sceneItems = await this.getSceneItemList(sceneName);
 
-      
       const dskSources = sceneItems.filter((item) =>
         item.sourceName.includes(OBS_WEBSOCKET_CONFIG.downstreamKeyer.sourceNamePrefix)
       );
@@ -496,7 +470,6 @@ class OBSWebSocketClient {
         return null;
       }
 
-      
       const activeDSK = dskSources.find((item) => item.sceneItemEnabled);
 
       return {
@@ -581,7 +554,6 @@ class OBSWebSocketClient {
     });
   }
 }
-
 
 const obsWebSocket = new OBSWebSocketClient();
 

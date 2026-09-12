@@ -1,12 +1,7 @@
 import { processVerseText } from '../api/getData.js';
 import { getBibleMap } from '../config/bibleConfig.js';
 import { addEntry, isCurrentlyRecording } from './resumeManager.js';
-import {
-  isContentVisible,
-  setOnAirVerse,
-  getOnAirVerse,
-  setOnAirBibleCode,
-} from './appState.js';
+import { isContentVisible, setOnAirVerse, getOnAirVerse, setOnAirBibleCode } from './appState.js';
 import obsWebSocket from './obsWebSocket.js';
 
 const messageChannel = new BroadcastChannel('myChannel');
@@ -101,8 +96,7 @@ function updateOnAirStatusUI() {
     statusEl.className = 'on-air-status is-live';
     const rowEl = document.getElementById(onAir.id);
     const previewText = rowEl?.querySelector('.verse-text')?.textContent.trim() || '';
-    const preview =
-      previewText.length > 60 ? `${previewText.slice(0, 60).trim()}…` : previewText;
+    const preview = previewText.length > 60 ? `${previewText.slice(0, 60).trim()}…` : previewText;
 
     statusEl.innerHTML = `
       <span class="on-air-dot"></span>
@@ -116,7 +110,9 @@ function updateOnAirStatusUI() {
       rowEl.classList.add('on-air-row');
       document
         .getElementById('on-air-jump')
-        ?.addEventListener('click', () => rowEl.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+        ?.addEventListener('click', () =>
+          rowEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        );
     }
   } else {
     statusEl.className = 'on-air-status is-ready';

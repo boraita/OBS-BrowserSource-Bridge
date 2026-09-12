@@ -90,7 +90,9 @@ function summarizeBackgroundSettings() {
 function summarizeTitleSettings() {
   const enabled = isChecked('titleBoxEnabled');
   const alignment = fieldValue('titleAlignment');
-  return enabled ? `Con caja · ${alignment || 'izquierda'}` : `Sin caja · ${alignment || 'izquierda'}`;
+  return enabled
+    ? `Con caja · ${alignment || 'izquierda'}`
+    : `Sin caja · ${alignment || 'izquierda'}`;
 }
 
 function summarizeAnimationSettings() {
