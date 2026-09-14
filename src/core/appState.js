@@ -5,6 +5,7 @@
 let contentVisible = false;
 let onAirVerse = null;
 let onAirBibleCode = null;
+let onAirSearchContext = null;
 let searchMode = 'reference';
 
 export function setContentVisible(visible) {
@@ -40,6 +41,21 @@ export function setOnAirBibleCode(code) {
 
 export function getOnAirBibleCode() {
   return onAirBibleCode;
+}
+
+/**
+ * The search (query + mode) that was active when the on-air verse was
+ * clicked, so "ir" can reconstruct that exact list after the operator has
+ * browsed away to a different Bible/query while live — not just switch the
+ * Bible back, but bring the same result row back into the DOM to scroll to.
+ * @param {{query: string, mode: string} | null} context
+ */
+export function setOnAirSearchContext(context) {
+  onAirSearchContext = context;
+}
+
+export function getOnAirSearchContext() {
+  return onAirSearchContext;
 }
 
 /**

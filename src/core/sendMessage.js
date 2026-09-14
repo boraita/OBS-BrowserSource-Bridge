@@ -1,7 +1,16 @@
 import { processVerseText } from '../api/getData.js';
 import { getBibleMap } from '../config/bibleConfig.js';
 import { addEntry, isCurrentlyRecording } from './resumeManager.js';
-import { isContentVisible, setOnAirVerse, getOnAirVerse, setOnAirBibleCode } from './appState.js';
+import {
+  isContentVisible,
+  setOnAirVerse,
+  getOnAirVerse,
+  setOnAirBibleCode,
+  getOnAirBibleCode,
+  setOnAirSearchContext,
+  getOnAirSearchContext,
+  getSearchMode,
+} from './appState.js';
 import obsWebSocket from './obsWebSocket.js';
 
 const messageChannel = new BroadcastChannel('myChannel');
@@ -70,6 +79,12 @@ function sendListMessage() {
 document.getElementById('sendList').addEventListener('click', sendListMessage);
 document.addEventListener('keyup', handleKeyboardShortcut, false);
 
+// Set by jumpToOnAir() when it has to switch Bible/re-run a search to bring
+// the on-air row back into the DOM — updateOnAirStatusUI() (called at the
+// end of every search, see searchBible.js) checks it once the new results
+// are actually rendered and scrolls then, instead of guessing a timeout.
+let pendingJumpToOnAir = false;
+
 /**
  * Refreshes the "on air" status strip and the highlighted row so an operator
  * can tell what's actually visible on the overlay right now, even after
@@ -106,18 +121,57 @@ function updateOnAirStatusUI() {
       <button type="button" class="on-air-jump" id="on-air-jump">ir ↓</button>
     `;
 
+    document.getElementById('on-air-jump')?.addEventListener('click', jumpToOnAir);
+
     if (rowEl) {
       rowEl.classList.add('on-air-row');
-      document
-        .getElementById('on-air-jump')
-        ?.addEventListener('click', () =>
-          rowEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
-        );
+      if (pendingJumpToOnAir) {
+        pendingJumpToOnAir = false;
+        rowEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
     }
   } else {
     statusEl.className = 'on-air-status is-ready';
     statusEl.textContent = `Listo para mostrar: ${onAir.label}`;
   }
+}
+
+/**
+ * "ir ↓" — brings back whatever Bible/search produced the on-air verse, so
+ * browsing another translation while live doesn't lose your place. If the
+ * operator switched Bibles (or ran a different search) to compare
+ * translations, the on-air row is no longer in the DOM to scroll to; this
+ * restores the exact bible + query + mode that showed it, then scrolls once
+ * the new results render (see pendingJumpToOnAir above).
+ */
+async function jumpToOnAir() {
+  const onAir = getOnAirVerse();
+  if (!onAir) return;
+
+  const onAirBible = getOnAirBibleCode();
+  const context = getOnAirSearchContext();
+  const bibleSelect = document.getElementById('bible-version');
+  const currentBible = bibleSelect?.value?.toLowerCase();
+
+  const needsBibleSwitch = onAirBible && currentBible !== onAirBible;
+  const rowMissing = !document.getElementById(onAir.id);
+
+  if (needsBibleSwitch) {
+    pendingJumpToOnAir = true;
+    await window.switchToBible?.(onAirBible);
+    if (context?.query) {
+      window.restoreSearchContext?.(context);
+    }
+    return;
+  }
+
+  if (rowMissing && context?.query) {
+    pendingJumpToOnAir = true;
+    window.restoreSearchContext?.(context);
+    return;
+  }
+
+  document.getElementById(onAir.id)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 /**
@@ -213,6 +267,10 @@ function displayBible(verse, index) {
 
     setOnAirVerse({ id: clickedVerse.id, label: title || versionName || 'Versículo' });
     setOnAirBibleCode(versionCode);
+    setOnAirSearchContext({
+      query: document.getElementById('bible-input')?.value.trim() || '',
+      mode: getSearchMode(),
+    });
     updateOnAirStatusUI();
     window.refreshChipLiveState?.();
 

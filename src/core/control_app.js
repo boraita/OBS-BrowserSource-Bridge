@@ -63,6 +63,33 @@ function populateBibleVersionSelect() {
   renderBibleChips();
 }
 
+/**
+ * Switches the hidden <select> (source of truth) + the visible chip row to
+ * `code`, awaiting the actual DB load — not just firing the 'change' event
+ * and moving on — so a caller can safely trigger a search right after this
+ * resolves without racing selectBible()'s async chunk load. Exposed on
+ * window so sendMessage.js's "ir" jump button can bring the operator back
+ * to the on-air Bible after browsing to a different one.
+ */
+async function activateBibleChip(code) {
+  const chipRow = document.getElementById('bible-chip-row');
+  const bibleSelect = document.getElementById('bible-version');
+  if (!chipRow || !bibleSelect || !code) return;
+
+  const normalized = code.toLowerCase();
+  if (bibleSelect.value.toLowerCase() !== normalized) {
+    bibleSelect.value = normalized;
+    await selectBible(normalized);
+  }
+
+  chipRow.querySelectorAll('.bible-chip').forEach((chip) => {
+    chip.classList.toggle('active', chip.dataset.value.toLowerCase() === normalized);
+  });
+  updateChipLiveState();
+}
+
+window.switchToBible = activateBibleChip;
+
 function renderBibleChips() {
   const chipRow = document.getElementById('bible-chip-row');
   const bibleSelect = document.getElementById('bible-version');
@@ -77,13 +104,18 @@ function renderBibleChips() {
     .join('');
 
   chipRow.querySelectorAll('.bible-chip').forEach((chip) => {
-    chip.addEventListener('click', () => {
+    chip.addEventListener('click', async () => {
       if (chip.classList.contains('active')) return;
-      bibleSelect.value = chip.dataset.value;
-      bibleSelect.dispatchEvent(new Event('change'));
-      chipRow.querySelectorAll('.bible-chip').forEach((c) => c.classList.remove('active'));
-      chip.classList.add('active');
-      updateChipLiveState();
+      await activateBibleChip(chip.dataset.value);
+
+      // Browsing another translation of the passage you're looking at
+      // (even while live) should show that same passage in it, not force
+      // re-typing the search — "ir" (jumpToOnAir in sendMessage.js) is what
+      // brings the operator back to the on-air Bible + query afterward.
+      const input = document.getElementById('bible-input');
+      if (input?.value.trim()) {
+        document.getElementById('bible-submit')?.click();
+      }
     });
   });
 
@@ -116,33 +148,57 @@ const SEARCH_MODE_PLACEHOLDERS = {
 };
 
 /**
+ * Sets the Ref/Tex pill + appState + input placeholder for `mode`, without
+ * touching the input's value or running a search — shared by the pill click
+ * handler and restoreSearchContext (below), which also needs to set the
+ * mode before replaying a query.
+ */
+function activateSearchMode(mode) {
+  const tabsContainer = document.getElementById('search-mode-toggle');
+  const input = document.getElementById('bible-input');
+  if (!tabsContainer || !input) return;
+
+  setSearchMode(mode);
+  tabsContainer.querySelectorAll('.mode-pill').forEach((tab) => {
+    tab.classList.toggle('active', tab.dataset.mode === mode);
+  });
+  input.placeholder = SEARCH_MODE_PLACEHOLDERS[mode] || '';
+}
+
+/**
  * "Ref"/"Tex" pills pick which searchBible.js query path runs
  * (book+chapter lookup vs. keyword search) — see appState.js getSearchMode().
  */
 function initSearchModeTabs() {
   const tabsContainer = document.getElementById('search-mode-toggle');
-  const input = document.getElementById('bible-input');
-  const resultCount = document.getElementById('search-result-count');
-  if (!tabsContainer || !input) return;
+  if (!tabsContainer) return;
 
   tabsContainer.querySelectorAll('.mode-pill').forEach((tab) => {
     tab.addEventListener('click', () => {
       if (tab.classList.contains('active')) return;
+      activateSearchMode(tab.dataset.mode);
 
-      const mode = tab.dataset.mode;
-      setSearchMode(mode);
-
-      tabsContainer.querySelectorAll('.mode-pill').forEach((t) => t.classList.remove('active'));
-      tab.classList.add('active');
-
-      input.placeholder = SEARCH_MODE_PLACEHOLDERS[mode] || '';
-
+      const resultCount = document.getElementById('search-result-count');
       if (resultCount) {
         resultCount.hidden = true;
       }
     });
   });
 }
+
+/**
+ * Replays a captured {query, mode} — used by sendMessage.js's "ir" jump
+ * button to reconstruct the exact search that showed the on-air verse,
+ * after the operator browsed to a different query/mode while live.
+ */
+window.restoreSearchContext = function restoreSearchContext({ query, mode }) {
+  const input = document.getElementById('bible-input');
+  if (!input || !query) return;
+
+  activateSearchMode(mode);
+  input.value = query;
+  document.getElementById('bible-submit')?.click();
+};
 
 function attachBibleVersionListener() {
   const bibleVersion = document.getElementById('bible-version');
