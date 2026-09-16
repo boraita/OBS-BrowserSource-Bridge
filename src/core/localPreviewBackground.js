@@ -12,4 +12,16 @@ if (previewBg) {
   document.body.style.backgroundPosition = 'center';
   document.body.style.backgroundRepeat = 'no-repeat';
   console.log(`🖼️ Local preview background active: ${previewBg}`);
+
+  // This module is imported LAST in browser.ts (after load_settings.js),
+  // so this line runs after that file's own "no bgColor saved yet → default
+  // to opaque white" logic — otherwise that default would immediately
+  // overwrite this and hide the photo the moment "Mostrar" reveals the
+  // container. A real settingsChannel/CustomEvent message from the panel
+  // (e.g. via "Reenviar al overlay") arrives later/async and correctly
+  // overrides this with the operator's actual configured look.
+  const bgContainer = document.getElementById('bg-container');
+  if (bgContainer) {
+    bgContainer.style.backgroundColor = 'transparent';
+  }
 }
