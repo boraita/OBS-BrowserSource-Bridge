@@ -1,26 +1,33 @@
 /**
- * Dev-only: lets a plain browser tab preview the transparent overlay over a
- * real photo, since a normal tab has no video feed behind it like OBS does.
- * Completely inert unless ?previewBg=<url> is in the page URL, so the real
- * Browser Source in OBS (whose URL never has this param) is unaffected.
+ * Dev-only: lets a plain browser tab preview the transparent overlay over
+ * real photos, since a normal tab has no video feed behind it like OBS
+ * does. Completely inert unless ?previewBg=<url> is in the page URL, so the
+ * real Browser Source in OBS (whose URL never has this param) is unaffected.
  */
-const previewBg = new URLSearchParams(window.location.search).get('previewBg');
+const previewParams = new URLSearchParams(window.location.search);
+const previewBg = previewParams.get('previewBg');
+const previewBgHidden = previewParams.get('previewBgHidden');
 
 if (previewBg) {
   document.body.style.backgroundSize = 'cover';
   document.body.style.backgroundPosition = 'center';
   document.body.style.backgroundRepeat = 'no-repeat';
-  console.log(`🖼️ Local preview background active: ${previewBg}`);
+  console.log(
+    `🖼️ Local preview background active: ${previewBg}${previewBgHidden ? ` (hidden: ${previewBgHidden})` : ''}`
+  );
 
-  // Tracks the same "Mostrar"/"Ocultar" state as #bg-container, so the
-  // stand-in photo only appears while actually presenting — matching what
-  // this preview is for (checking the look while live), instead of always
-  // sitting there regardless of show/hide.
-  document.body.style.backgroundImage = 'none';
-  const visibilityChannel = new BroadcastChannel('bgContent');
-  visibilityChannel.onmessage = (event) => {
-    document.body.style.backgroundImage = event.data === 'shown' ? `url('${previewBg}')` : 'none';
+  // Tracks the same "Mostrar"/"Ocultar" state as #bg-container: previewBg
+  // (e.g. the live camera feed) shows while presenting, previewBgHidden
+  // (e.g. a "starting soon" slide) shows while hidden — or nothing if it
+  // wasn't given, same as before.
+  const setPreviewImage = (visible) => {
+    const url = visible ? previewBg : previewBgHidden;
+    document.body.style.backgroundImage = url ? `url('${url}')` : 'none';
   };
+
+  setPreviewImage(false);
+  const visibilityChannel = new BroadcastChannel('bgContent');
+  visibilityChannel.onmessage = (event) => setPreviewImage(event.data === 'shown');
 
   // This module is imported LAST in browser.ts (after load_settings.js),
   // so this line runs after that file's own "no bgColor saved yet → default
