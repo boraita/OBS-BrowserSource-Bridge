@@ -276,7 +276,18 @@ function createVerseElement(verseData, index) {
 
 async function loadInitialVerses() {
   const bblVerseDiv = document.getElementById('bible-verse');
-  const bibleData = await searchCharacters('Génesis 1');
+  const initialQuery = 'Génesis 1';
+
+  // Reflects what's actually on screen in the input, same as any other
+  // search — otherwise switching Bible chips right after opening the panel
+  // (before typing a search) finds an empty input and has no query to
+  // re-run, so the list silently doesn't switch translations.
+  const input = document.getElementById('bible-input');
+  if (input) {
+    input.value = initialQuery;
+  }
+
+  const bibleData = await searchCharacters(initialQuery);
 
   for (let i = 0; i < 31; i++) {
     const verseElement = createVerseElement(bibleData[i], i);
