@@ -2391,6 +2391,86 @@ button:active {
   margin: 8px 0;
 }
 
+/* Resume history (one collapsible block per saved day) */
+.resume-history {
+  margin-top: 16px;
+}
+
+.resume-history h3 {
+  margin: 0 0 8px;
+  color: var(--text-primary);
+  font-size: 15px;
+}
+
+.resume-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.resume-history-list > .resume-empty {
+  padding: 16px;
+}
+
+.resume-history-day {
+  background: var(--bg-deep);
+  border-radius: 8px;
+}
+
+.resume-history-day summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.resume-history-day summary::-webkit-details-marker {
+  display: none;
+}
+
+.resume-history-day summary::before {
+  content: '▸';
+  color: var(--text-muted);
+  transition: transform 0.2s ease;
+}
+
+.resume-history-day[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.resume-history-label {
+  color: var(--text-primary);
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.resume-history-count {
+  color: var(--text-muted);
+  font-size: 12px;
+  flex: 1;
+}
+
+.resume-history-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.resume-history-btn {
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
+.resume-history-btn[data-confirming='true'] {
+  background: var(--danger);
+  color: white;
+}
+
+.resume-history-entries {
+  padding: 0 12px 12px;
+}
+
 /* Resume tab scroll */
 #resume {
   height: 100%;
