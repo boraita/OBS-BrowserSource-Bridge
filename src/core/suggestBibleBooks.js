@@ -1,4 +1,5 @@
 import { getBibleChapterBooksList } from '../api/getData';
+import { removeAccents } from '../utils/normalizeText.js';
 
 let selectedBibleVersion;
 let bookOfBibles;
@@ -7,10 +8,6 @@ let debounceTimer;
 const bibleInput = document.getElementById('bible-input');
 const suggestionsList = document.getElementById('suggestions');
 let selectedSuggestionIndex = -1;
-
-function removeAccents(str) {
-  return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-}
 
 async function getBooksOfTheBible() {
   const currentVersion = document.getElementById('bible-version').value;

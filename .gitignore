@@ -33,3 +33,6 @@ Thumbs.db
 *~
 
 .env
+
+# Local-only dev server files (e.g. ?previewBg= photos)
+dev-assets/
