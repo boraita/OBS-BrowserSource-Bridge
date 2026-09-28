@@ -19,7 +19,7 @@ function jsonToExample({ bible }) {
 }
 const bible = jsonToExample(bibleJson);
 
-saveFileJson = (bible) => {
+const saveFileJson = (bible) => {
   const fs = require('fs');
   fs.writeFile('parsedBible.json', JSON.stringify(JSON.parse(bible)), (err) => {
     if (err) throw err;

@@ -249,7 +249,7 @@ async function exportBibleToXml(bibleCode) {
     // Step 1: Get database metadata from info table
     log(`\n📊 Reading database metadata...`, 'cyan');
 
-    let dbMetadata = {};
+    const dbMetadata = {};
     try {
       const infoQuery = `SELECT name, value FROM info`;
       const infoResult = execSync(`sqlite3 "${dbPath}" -separator "|" "${infoQuery}"`, {

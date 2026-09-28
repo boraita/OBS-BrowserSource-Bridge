@@ -18,7 +18,7 @@ const historyButton = document.getElementById('history');
 const CLICK_DEBOUNCE_MS = 300;
 const BIBLE_MAP = getBibleMap();
 
-let verseHistory = [];
+const verseHistory = [];
 let lastSelectedVerse = null;
 
 /**

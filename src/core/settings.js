@@ -52,6 +52,7 @@ const titleBoxPadding = document.getElementById('titleBoxPadding');
 const titleBoxFullWidth = document.getElementById('titleBoxFullWidth');
 const titleBoxWidth = document.getElementById('titleBoxWidth');
 const titleBoxWidthGroup = document.getElementById('titleBoxWidthGroup');
+const titleAlignmentGroup = document.getElementById('titleAlignmentGroup');
 const titleBoxColor = document.getElementById('titleBoxColor');
 const titleBoxOpacity = document.getElementById('titleBoxOpacity');
 const titleBoxBorder = document.getElementById('titleBoxBorder');
@@ -95,12 +96,12 @@ function getOppositeColor(hexColor) {
     ------------------------------------------ */
 
 fontElement.addEventListener('change', function () {
-  let selectedValue = fontElement.options[fontElement.selectedIndex].value;
+  const selectedValue = fontElement.options[fontElement.selectedIndex].value;
   broadcastSetting({ selectedFont: selectedValue });
 });
 
 opacityRange.addEventListener('input', () => {
-  let currentOpacity = opacityRange.value / 10;
+  const currentOpacity = opacityRange.value / 10;
 
   let bgColor = localStorage.getItem('bgColor') || '#000000';
 
@@ -118,15 +119,15 @@ opacityRange.addEventListener('input', () => {
     opacityDisplay.textContent = percentage + '%';
   }
 
-  let rgbValues = bgColor.match(/\d+/g);
+  const rgbValues = bgColor.match(/\d+/g);
   if (rgbValues && rgbValues.length >= 3) {
-    let newColor = `rgba(${rgbValues[0]}, ${rgbValues[1]}, ${rgbValues[2]}, ${currentOpacity})`;
+    const newColor = `rgba(${rgbValues[0]}, ${rgbValues[1]}, ${rgbValues[2]}, ${currentOpacity})`;
     broadcastSetting({ containerOpacity: newColor });
   }
 });
 
 roundedCorner.addEventListener('input', () => {
-  let currentCorner = roundedCorner.value;
+  const currentCorner = roundedCorner.value;
 
   const roundedCornerDisplay = document.getElementById('roundedCornerDisplay');
   if (roundedCornerDisplay) {
@@ -1452,7 +1453,7 @@ if (boldButton) {
   boldButton.style.backgroundColor = initialBoldState === 'bold' ? '#55a' : '#555';
 
   boldButton.addEventListener('click', function () {
-    let currentBoldState = localStorage.getItem('boldState') || 'normal';
+    const currentBoldState = localStorage.getItem('boldState') || 'normal';
     const newBoldState = currentBoldState === 'bold' ? 'normal' : 'bold';
 
     boldButton.style.fontWeight = newBoldState;
@@ -1474,7 +1475,7 @@ if (italicButton) {
   italicButton.style.backgroundColor = initialItalicState === 'italic' ? '#55a' : '#555';
 
   italicButton.addEventListener('click', function () {
-    let currentItalicState = localStorage.getItem('italicState') || 'normal';
+    const currentItalicState = localStorage.getItem('italicState') || 'normal';
     const newItalicState = currentItalicState === 'italic' ? 'normal' : 'italic';
 
     if (newItalicState === 'italic') {
@@ -1497,7 +1498,7 @@ if (underlineButton) {
   underlineButton.style.backgroundColor = initialUnderlineState === 'underline' ? '#55a' : '#555';
 
   underlineButton.addEventListener('click', function () {
-    let currentUnderlineState = localStorage.getItem('underlineState') || 'none';
+    const currentUnderlineState = localStorage.getItem('underlineState') || 'none';
     const newUnderlineState = currentUnderlineState === 'underline' ? 'none' : 'underline';
 
     if (newUnderlineState === 'underline') {
@@ -1521,7 +1522,7 @@ if (textAlignElement) {
   }
 
   textAlignElement.addEventListener('change', function () {
-    let selectedValue = textAlignElement.options[textAlignElement.selectedIndex].value;
+    const selectedValue = textAlignElement.options[textAlignElement.selectedIndex].value;
     localStorage.setItem('textAlign', selectedValue);
     broadcastSetting({ selectedTextAlignment: selectedValue });
   });

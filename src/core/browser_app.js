@@ -379,7 +379,7 @@ function adjustFontSizeBasedOnContent() {
     window.styleManager.forceReflow();
   } else {
     messageDisplay.style.fontSize = fontSize + 'px';
-    messageDisplay.offsetHeight;
+    void messageDisplay.offsetHeight; // force synchronous reflow
   }
 
   if (hasTitle) {
@@ -394,7 +394,7 @@ function adjustFontSizeBasedOnContent() {
       messageDisplay.style.justifyContent = 'flex-start';
       messageDisplay.style.wordWrap = 'break-word';
       messageDisplay.style.overflowWrap = 'break-word';
-      messageDisplay.offsetHeight;
+      void messageDisplay.offsetHeight; // force synchronous reflow
     }
   }
 
