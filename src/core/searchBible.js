@@ -1,6 +1,7 @@
 import { searchCharacters, searchInBibleText } from '../api/getData';
 import { displayBible, updateOnAirStatusUI } from './sendMessage';
 import { getSearchMode } from './appState.js';
+import { accentInsensitivePattern } from '../utils/normalizeText.js';
 
 /**
  * A verse's `name` is always "<book> <chapter>:<verse>" (see getData.js).
@@ -16,10 +17,6 @@ function getBookChapterKey(name) {
   return `${book} ${chapter}`;
 }
 
-function escapeRegExp(str) {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
 /**
  * Wraps every occurrence of `term` in `text` with a <mark>, so a text-search
  * match is visible at a glance in the result list (reference lookups never
@@ -27,9 +24,9 @@ function escapeRegExp(str) {
  */
 function highlightMatches(text, term) {
   if (!term) return text;
-  const escaped = escapeRegExp(term.trim());
-  if (!escaped) return text;
-  return text.replace(new RegExp(`(${escaped})`, 'ig'), '<mark class="verse-highlight">$1</mark>');
+  const pattern = accentInsensitivePattern(term.trim());
+  if (!pattern) return text;
+  return text.replace(new RegExp(`(${pattern})`, 'ig'), '<mark class="verse-highlight">$1</mark>');
 }
 
 function createVerseElement(verse, { grouped, highlightTerm } = {}) {
