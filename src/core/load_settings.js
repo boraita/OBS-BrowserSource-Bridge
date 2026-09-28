@@ -3,11 +3,11 @@ const savedFontFamily = localStorage.getItem('fontFamily');
 const savedFontColor = localStorage.getItem('fontColor');
 const savedBorderRadius = localStorage.getItem('borderRadius');
 const savedTitleColor = localStorage.getItem('titleColor');
-var savedMessage = localStorage.getItem('savedMessage');
-var savedBoldState = localStorage.getItem('boldState');
-var savedItalicState = localStorage.getItem('italicState');
-var savedUnderlineState = localStorage.getItem('underlineState');
-var savedTextAlign = localStorage.getItem('textAlign');
+const savedMessage = localStorage.getItem('savedMessage');
+const savedBoldState = localStorage.getItem('boldState');
+const savedItalicState = localStorage.getItem('italicState');
+const savedUnderlineState = localStorage.getItem('underlineState');
+const savedTextAlign = localStorage.getItem('textAlign');
 
 const bgContainer = document.getElementById('bg-container');
 const messageDisplay = document.getElementById('messageDisplay');

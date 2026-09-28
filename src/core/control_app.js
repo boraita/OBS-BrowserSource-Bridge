@@ -1,5 +1,5 @@
 import { searchCharacters, selectBible } from '../api/getData';
-import { displayBible, getLastSelectedVerse } from './sendMessage';
+import { displayBible, getLastSelectedVerse, updateOnAirStatusUI } from './sendMessage';
 import { getBibleOptions } from '../config/bibleConfig.js';
 import obsWebSocket from './obsWebSocket.js';
 import {
@@ -9,9 +9,24 @@ import {
   startRecording,
   stopRecording,
 } from './resumeManager.js';
-import { setContentVisible } from './appState.js';
+import {
+  setContentVisible,
+  isContentVisible,
+  getOnAirBibleCode,
+  setSearchMode,
+} from './appState.js';
 
 const bgContent = new BroadcastChannel('bgContent');
+
+/**
+ * Sends over BroadcastChannel and, as a fallback for OBS's Custom Dock /
+ * Browser Source partition isolation (obsproject/obs-studio#6202), also
+ * relays via OBS WebSocket's CustomEvent — see broadcastChannels.js.
+ */
+function broadcastVisibility(state) {
+  bgContent.postMessage(state);
+  obsWebSocket.broadcastCustomEvent({ channel: 'bgContent', data: state });
+}
 const TAB_ELEMENTS = [
   'tab-text',
   'tab-bibleText',
@@ -32,6 +47,11 @@ function attachTabListeners() {
   });
 }
 
+/**
+ * The <select id="bible-version"> stays in the DOM (hidden) as the single
+ * source of truth every other module already reads (.value) and listens to
+ * (its 'change' event) — the chip row below is just a nicer way to drive it.
+ */
 function populateBibleVersionSelect() {
   const bibleSelect = document.getElementById('bible-version');
   if (bibleSelect) {
@@ -40,7 +60,145 @@ function populateBibleVersionSelect() {
       .map((opt) => `<option value="${opt.value}">${opt.label}</option>`)
       .join('');
   }
+  renderBibleChips();
 }
+
+/**
+ * Switches the hidden <select> (source of truth) + the visible chip row to
+ * `code`, awaiting the actual DB load — not just firing the 'change' event
+ * and moving on — so a caller can safely trigger a search right after this
+ * resolves without racing selectBible()'s async chunk load. Exposed on
+ * window so sendMessage.js's "ir" jump button can bring the operator back
+ * to the on-air Bible after browsing to a different one.
+ */
+async function activateBibleChip(code) {
+  const chipRow = document.getElementById('bible-chip-row');
+  const bibleSelect = document.getElementById('bible-version');
+  if (!chipRow || !bibleSelect || !code) return;
+
+  const normalized = code.toLowerCase();
+  if (bibleSelect.value.toLowerCase() !== normalized) {
+    bibleSelect.value = normalized;
+    await selectBible(normalized);
+  }
+
+  chipRow.querySelectorAll('.bible-chip').forEach((chip) => {
+    chip.classList.toggle('active', chip.dataset.value.toLowerCase() === normalized);
+  });
+  updateChipLiveState();
+}
+
+window.switchToBible = activateBibleChip;
+
+function renderBibleChips() {
+  const chipRow = document.getElementById('bible-chip-row');
+  const bibleSelect = document.getElementById('bible-version');
+  if (!chipRow || !bibleSelect) return;
+
+  const options = getBibleOptions();
+  chipRow.innerHTML = options
+    .map(
+      (opt, index) =>
+        `<button type="button" class="bible-chip${index === 0 ? ' active' : ''}" data-value="${opt.value}">${opt.label}</button>`
+    )
+    .join('');
+
+  chipRow.querySelectorAll('.bible-chip').forEach((chip) => {
+    chip.addEventListener('click', async () => {
+      if (chip.classList.contains('active')) return;
+      await activateBibleChip(chip.dataset.value);
+
+      // Browsing another translation of the passage you're looking at
+      // (even while live) should show that same passage in it, not force
+      // re-typing the search — "ir" (jumpToOnAir in sendMessage.js) is what
+      // brings the operator back to the on-air Bible + query afterward.
+      const input = document.getElementById('bible-input');
+      if (input?.value.trim()) {
+        document.getElementById('bible-submit')?.click();
+      }
+    });
+  });
+
+  updateChipLiveState();
+}
+
+/**
+ * Marks the Bible chip the on-air verse actually came from as "live" while
+ * the overlay is showing — NOT just "whichever chip is selected right now".
+ * Switching chips to browse another translation doesn't change what's
+ * actually on the overlay until a verse from it gets clicked, so the two
+ * must be tracked separately (see appState.js setOnAirBibleCode).
+ */
+function updateChipLiveState() {
+  const chipRow = document.getElementById('bible-chip-row');
+  if (!chipRow) return;
+
+  const live = isContentVisible();
+  const onAirCode = getOnAirBibleCode();
+  chipRow.querySelectorAll('.bible-chip').forEach((chip) => {
+    chip.classList.toggle('live', live && chip.dataset.value?.toLowerCase() === onAirCode);
+  });
+}
+
+window.refreshChipLiveState = updateChipLiveState;
+
+const SEARCH_MODE_PLACEHOLDERS = {
+  reference: 'salmo 23',
+  text: 'no se turbe',
+};
+
+/**
+ * Sets the Ref/Tex pill + appState + input placeholder for `mode`, without
+ * touching the input's value or running a search — shared by the pill click
+ * handler and restoreSearchContext (below), which also needs to set the
+ * mode before replaying a query.
+ */
+function activateSearchMode(mode) {
+  const tabsContainer = document.getElementById('search-mode-toggle');
+  const input = document.getElementById('bible-input');
+  if (!tabsContainer || !input) return;
+
+  setSearchMode(mode);
+  tabsContainer.querySelectorAll('.mode-pill').forEach((tab) => {
+    tab.classList.toggle('active', tab.dataset.mode === mode);
+  });
+  input.placeholder = SEARCH_MODE_PLACEHOLDERS[mode] || '';
+}
+
+/**
+ * "Ref"/"Tex" pills pick which searchBible.js query path runs
+ * (book+chapter lookup vs. keyword search) — see appState.js getSearchMode().
+ */
+function initSearchModeTabs() {
+  const tabsContainer = document.getElementById('search-mode-toggle');
+  if (!tabsContainer) return;
+
+  tabsContainer.querySelectorAll('.mode-pill').forEach((tab) => {
+    tab.addEventListener('click', () => {
+      if (tab.classList.contains('active')) return;
+      activateSearchMode(tab.dataset.mode);
+
+      const resultCount = document.getElementById('search-result-count');
+      if (resultCount) {
+        resultCount.hidden = true;
+      }
+    });
+  });
+}
+
+/**
+ * Replays a captured {query, mode} — used by sendMessage.js's "ir" jump
+ * button to reconstruct the exact search that showed the on-air verse,
+ * after the operator browsed to a different query/mode while live.
+ */
+window.restoreSearchContext = function restoreSearchContext({ query, mode }) {
+  const input = document.getElementById('bible-input');
+  if (!input || !query) return;
+
+  activateSearchMode(mode);
+  input.value = query;
+  document.getElementById('bible-submit')?.click();
+};
 
 function attachBibleVersionListener() {
   const bibleVersion = document.getElementById('bible-version');
@@ -60,6 +218,7 @@ function initializeEventListeners() {
   populateBibleVersionSelect();
   attachTabListeners();
   attachBibleVersionListener();
+  initSearchModeTabs();
 }
 
 function findTabIndex(tabs, selectedTab) {
@@ -117,7 +276,18 @@ function createVerseElement(verseData, index) {
 
 async function loadInitialVerses() {
   const bblVerseDiv = document.getElementById('bible-verse');
-  const bibleData = await searchCharacters('Génesis 1');
+  const initialQuery = 'Génesis 1';
+
+  // Reflects what's actually on screen in the input, same as any other
+  // search — otherwise switching Bible chips right after opening the panel
+  // (before typing a search) finds an empty input and has no query to
+  // re-run, so the list silently doesn't switch translations.
+  const input = document.getElementById('bible-input');
+  if (input) {
+    input.value = initialQuery;
+  }
+
+  const bibleData = await searchCharacters(initialQuery);
 
   for (let i = 0; i < 31; i++) {
     const verseElement = createVerseElement(bibleData[i], i);
@@ -160,9 +330,12 @@ async function handleBgContent() {
       }
     }
 
-    bgContent.postMessage('shown');
+    broadcastVisibility('shown');
     bgContentBtn.innerHTML = 'Ocultar';
     setContentVisible(true);
+    updateOnAirStatusUI();
+    updateChipLiveState();
+    window.refreshOnAirPill?.();
   } else {
     if (obsWebSocket.connected) {
       const autoSceneEnabled = localStorage.getItem('obsAutoSceneEnabled') === 'true';
@@ -171,9 +344,12 @@ async function handleBgContent() {
       }
     }
 
-    bgContent.postMessage('hidden');
+    broadcastVisibility('hidden');
     bgContentBtn.innerHTML = 'Mostrar';
     setContentVisible(false);
+    updateOnAirStatusUI();
+    updateChipLiveState();
+    window.refreshOnAirPill?.();
   }
 }
 
@@ -221,7 +397,7 @@ function createStatusContainer() {
 }
 
 function initializeBrowserVisibility() {
-  bgContent.postMessage('hidden');
+  broadcastVisibility('hidden');
 
   if (bgContentBtn) {
     bgContentBtn.innerHTML = 'Mostrar';
@@ -490,9 +666,18 @@ function loadOBSConfig() {
  * Save OBS configuration to localStorage
  */
 function handleSaveOBSConfig() {
-  const host = document.getElementById('obs-host').value.trim();
-  const port = document.getElementById('obs-port').value.trim();
-  const password = document.getElementById('obs-password').value;
+  const hostInput = document.getElementById('obs-host');
+  const portInput = document.getElementById('obs-port');
+  const passwordInput = document.getElementById('obs-password');
+
+  if (!hostInput || !portInput || !passwordInput) {
+    console.warn('⚠️ OBS config inputs not found in DOM');
+    return;
+  }
+
+  const host = hostInput.value.trim();
+  const port = portInput.value.trim();
+  const password = passwordInput.value;
 
   if (!host) {
     showNotification('❌ Host cannot be empty', 'error');

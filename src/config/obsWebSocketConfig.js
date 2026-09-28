@@ -26,12 +26,19 @@ export function getWebSocketUrl() {
 }
 
 /**
- * Load saved WebSocket configuration from localStorage
+ * Load saved WebSocket configuration from localStorage, with URL query
+ * params (?wsHost=&wsPort=&wsPassword=) taking priority. The Browser
+ * Source page has no Settings UI of its own and can't read the panel's
+ * localStorage (separate OBS storage partition — obsproject/obs-studio#6202),
+ * so its connection details have to come from its own URL instead: set them
+ * once on the Browser Source's URL property in OBS.
  */
 export function loadWebSocketConfig() {
-  const savedHost = localStorage.getItem('obsWebSocketHost');
-  const savedPort = localStorage.getItem('obsWebSocketPort');
-  const savedPassword = localStorage.getItem('obsWebSocketPassword');
+  const params = new URLSearchParams(window.location.search);
+
+  const savedHost = params.get('wsHost') || localStorage.getItem('obsWebSocketHost');
+  const savedPort = params.get('wsPort') || localStorage.getItem('obsWebSocketPort');
+  const savedPassword = params.get('wsPassword') || localStorage.getItem('obsWebSocketPassword');
 
   if (savedHost) OBS_WEBSOCKET_CONFIG.host = savedHost;
   if (savedPort) OBS_WEBSOCKET_CONFIG.port = parseInt(savedPort, 10);

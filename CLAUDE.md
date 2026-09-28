@@ -13,58 +13,60 @@ pnpm install          # Install dependencies (always use pnpm, not npm/yarn)
 pnpm dev              # One-off development build
 pnpm start            # Webpack dev server at http://localhost:8080/
 pnpm build            # Production bundle to dist/
+pnpm build:analyze    # Production build with stats.json for bundle analysis
 pnpm typecheck        # TypeScript type check (tsc --noEmit)
 pnpm lint             # ESLint on .js and .ts files
 pnpm format           # Prettier format all files
 pnpm format:check     # Prettier check without writing
-pnpm package          # build + package minimal release ZIP
-pnpm package:full     # build + package full release ZIP
+pnpm package          # build + minimal release ZIP (scripts/package-release.sh)
+pnpm package:full     # build + full release ZIP (scripts/package-release-full.sh)
+pnpm release-pr       # Open a release PR (patch); also :minor / :major variants
+pnpm export:bible     # Export a bundled SQLite Bible to XML (scripts/exportBibleToXml.js)
 ```
 
-**Testing** (no Jest — Node regression scripts):
-```bash
-node testing/testAlgorithm.js [--quick]
-node testing/testBibleSelection.js
-node testing/testSnapshot.js [--update]
-```
-New scripts go in `testing/testFeature.js` and must be documented in `testing/README.md`.
+**Testing.** There is no Jest/Vitest harness and no automated test command. `testing/` currently only contains `README.md` and `index.html`; the Node scripts the README describes (`testDirect.js`, `testAlgorithm.js`, etc.) are not in the tree. If you add regression scripts, put them in `testing/` and document them in `testing/README.md`. Manual validation in OBS remains the source of truth.
 
 ## Architecture
 
-The app has two independent entry points that communicate via `BroadcastChannel`:
+The app has two independent entry points that communicate via `BroadcastChannel`. Webpack builds them as separate bundles with shared chunks:
 
-| Entry Point | HTML | TypeScript Entry | Purpose |
-|---|---|---|---|
-| Control Panel | `src/public/control_panel.html` | `src/public/panel/panel.ts` | OBS Custom Browser Dock for searching/selecting verses |
-| Browser Source | `src/public/browser_source.html` | `src/public/browser/browser.ts` | OBS overlay that displays verses in the stream |
+| Entry Point    | HTML template                   | TS entry                        | Output                             |
+| -------------- | ------------------------------- | ------------------------------- | ---------------------------------- |
+| Control Panel  | `src/public/panel/index.html`   | `src/public/panel/panel.ts`     | `dist/panel.html` + `panel.js`     |
+| Browser Source | `src/public/browser/index.html` | `src/public/browser/browser.ts` | `dist/browser.html` + `browser.js` |
 
-**Three broadcast channels:**
+**Three broadcast channels** (`src/core/broadcastChannels.js`):
+
 - `myChannel` — verse content updates
 - `bgContent` — overlay visibility
 - `settings` — configuration sync
 
 **Source layout:**
-- `src/core/` — UI controllers (`control_app.js`, `browser_app.js`) and shared logic (`broadcastChannels.js`, `settings.js`, `sendMessage.js`, `styleManager.js`, `panelStyleManager.js`, `obsWebSocket.js`)
-- `src/api/` — database access (`connectDb.js`, `getData.js`)
-- `src/db/` — bundled SQLite Bible translations (loaded as arraybuffers via `arraybuffer-loader`)
-- `src/config/` — Bible lazy-loader mappings (`bibleConfig.js`) and OBS WebSocket config
-- `src/styles/` — SCSS (`cp_style.scss`, `browser_style.scss`); JS-driven dynamic styles go through `styleManager.js` / `panelStyleManager.js`
-- `src/utils/` — shared utilities
-- `dist/` — generated output, never edit directly
-- `testing/` — Node regression scripts
 
-**Bible databases:** 10 SQLite files in `src/db/` (BTX, KDSH, LBLA, NTV, NVI, NVIC, RVR60, TLA, etc.). New translations require entries in `src/config/bibleConfig.js` and a corresponding `.sqlite` file.
+- `src/core/` — UI controllers (`control_app.js`, `browser_app.js`) and shared logic: `broadcastChannels.js`, `settings.js`, `sendMessage.js`, `styleManager.js`, `panelStyleManager.js`, `obsWebSocket.js`, `appState.js`, `searchBible.js`, `suggestBibleBooks.js`, `resumeManager.js` (the Resume tab that timestamps displayed verses).
+- `src/api/` — database access (`connectDb.js`, `getData.js`).
+- `src/config/` — `bibleConfig.js` (lazy-loader mappings for each Bible) and `obsWebSocketConfig.js`.
+- `src/db/` — SQLite Bible files loaded as arraybuffers via `arraybuffer-loader`. **Only `RVR60.sqlite` is checked in**; all other `.sqlite` files are gitignored (see `TESTING.md`). Users add their own translations locally.
+- `src/lib/sql-asm.js` — SQL.js asm.js build; split into its own `sql-library` chunk by webpack.
+- `src/styles/` — SCSS: `cp_style.scss`, `browser_style.scss`, plus `dynamic-styles.scss` / `panel-dynamic-styles.scss` driven by `styleManager.js` / `panelStyleManager.js`.
+- `src/types/` — TypeScript ambient declarations (e.g., `styles.d.ts`).
+- `src/utils/parseBibles.js` — shared helpers.
+- `dist/` — generated output, never edit directly.
+
+**Webpack chunking** (`webpack.config.js`): each `.sqlite` becomes its own `bible-<name>` chunk, `sql-asm.js` becomes `sql-library`, and a single `runtime` chunk is shared. This is what enables the lazy-loading model — Bibles load only when selected.
+
+**Adding a Bible:** drop `NAME.sqlite` into `src/db/` and add an entry to `BIBLE_CONFIG` in `src/config/bibleConfig.js` (`name`, `displayName`, `fullName`, `requiresTagCleaning`, `loader: () => import('../db/NAME.sqlite')`). The selector is built from this map.
 
 ## Code Style
 
-- ES modules everywhere (`import ... from "..."`)
-- Two-space indentation, double quotes for strings
-- camelCase variables/functions, PascalCase classes/types, UPPER_SNAKE_CASE constants, kebab-case DOM ids/classes
-- Avoid `any` in TypeScript; keep function signatures explicit
-- `async/await` over `.then()` chains; always handle rejections
-- Query DOM elements once, null-check before use
-- Target modern Chromium (OBS docks); no Node-only globals in browser code
+- ES modules everywhere (`import ... from '...'`).
+- Prettier: 2-space indent, **single quotes**, semicolons, 100-char width, trailing commas `es5` (see `.prettierrc`).
+- camelCase variables/functions, PascalCase classes/types, UPPER_SNAKE_CASE constants, kebab-case DOM ids/classes.
+- TypeScript: avoid `any`; keep function signatures explicit. `ts-loader` runs with `transpileOnly: true`, so `pnpm typecheck` is what actually catches type errors — run it before claiming a TS change is done.
+- `async/await` over `.then()` chains; always handle rejections, especially around OBS WebSocket and SQL.js calls.
+- Query DOM elements once and null-check before use.
+- Target modern Chromium (OBS docks); Babel preset-env targets `chrome: 88`. No Node-only globals in browser code.
 
 ## OBS Validation
 
-After code changes, manually verify both the control panel dock and browser source in OBS with real passages before considering the change complete.
+After code changes, manually verify both the control panel dock and the browser source in OBS with real passages before considering the change complete. Type checking and lint don't catch overlay regressions.

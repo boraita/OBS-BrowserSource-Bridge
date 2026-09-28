@@ -39,13 +39,34 @@ function log(message, color = 'reset') {
 // TEXT PROCESSING FUNCTIONS (from getData.js)
 // =====================================================
 
-function removeTags(str) {
+/**
+ * Strips a tag + everything between it and its closing tag (e.g. Strong's
+ * number/morphology markup like <S>1063</S>, <m>CLX</m> in LBLA+, where the
+ * "content" is metadata, not real words) — except <i>, whose content is
+ * real text (a supplied/implied word) and must survive.
+ *
+ * Self-closing tags (e.g. LBLA+'s <pb/> paragraph markers) are stripped
+ * first: they have no closing counterpart, so the paired-tag pattern below
+ * would otherwise treat the NEXT unrelated closing tag as this one's match,
+ * silently swallowing real words in between.
+ */
+function removeTagsWithContent(str) {
   if (!str || str === '') return '';
-
   const text = str.toString();
-  // Remove all HTML/XML tags including <J>, <i>, <br/>, etc.
-  // This simpler approach removes ALL tags without exceptions
-  return text.replace(/<[^>]+>/g, '');
+  const withoutSelfClosing = text.replace(/<[a-zA-Z]+\s*\/>/g, '');
+  return withoutSelfClosing.replace(/<(?!\/?i>)(?!i>).*?<\/(?!\/?i>)(?!i>).*?>|<i>|<\/i>/g, '');
+}
+
+/**
+ * Safety-net pass, always applied regardless of requiresTagCleaning: strips
+ * any remaining individual tag marker (e.g. NVIC's <pb/>, <t>...</t> — real
+ * verse text lives *inside* <t>) without touching the text between tags.
+ * Unlike the live app, XML export has no use for HTML tags surviving in the
+ * output, so this can run unconditionally.
+ */
+function stripLeftoverTagMarkers(str) {
+  if (!str) return '';
+  return str.toString().replace(/<[^>]+>/g, '');
 }
 
 /**
@@ -56,7 +77,8 @@ function removeTags(str) {
 function processVerseText(text, requiresCleaning = true) {
   if (!text) return '';
 
-  const textWithoutTags = requiresCleaning ? removeTags(text) : text;
+  const withContentTagsHandled = requiresCleaning ? removeTagsWithContent(text) : text;
+  const textWithoutTags = stripLeftoverTagMarkers(withContentTagsHandled);
 
   return textWithoutTags
     .replace(/<\/?br\s*\/?>/gi, ' ') // HTML line breaks (in case not removed)
@@ -97,7 +119,10 @@ const BIBLE_CONFIG = {
     publisher: 'The Lockman Foundation',
     description: 'Traducción literal moderna del español',
     copyright: 'Copyright © 1986, 1995, 1997 by The Lockman Foundation',
-    requiresTagCleaning: false,
+    // LBLA+.SQLite3 embeds Strong's numbers and morphology codes as
+    // <S>1063</S><m>CLX</m>-style tags — their content must be deleted
+    // along with the tag (see removeTagsWithContent), not just the tag.
+    requiresTagCleaning: true,
   },
   nvi: {
     name: 'NVI',
@@ -142,6 +167,37 @@ const BIBLE_CONFIG = {
     publisher: '',
     description: 'Peshita - Biblia en arameo/siríaco',
     copyright: '',
+    requiresTagCleaning: false,
+  },
+  rvc: {
+    name: 'RVC',
+    fullName: 'Reina Valera Contemporánea',
+    shortName: 'RVC',
+    publisher: 'Sociedades Bíblicas Unidas',
+    description: 'Revisión contemporánea de la Reina Valera',
+    copyright: 'Copyright © 2009, 2011 by Sociedades Bíblicas Unidas',
+    requiresTagCleaning: false,
+  },
+  nvic: {
+    name: 'NVIC',
+    fullName: 'Nueva Versión Internacional 2017',
+    shortName: 'NVI 2017',
+    publisher: 'Biblica, Inc.',
+    description: 'Nueva Versión Internacional (Castellano) 2017',
+    copyright: 'Copyright © 1999, 2005, 2017 por Biblica, Inc.',
+    // <t>...</t> wraps the verse text itself here, not just decoration —
+    // requiresTagCleaning must stay off (removeTagsWithContent would delete
+    // the actual verse text); stripLeftoverTagMarkers still removes the
+    // <pb/>/<t> markers themselves further down in processVerseText().
+    requiresTagCleaning: false,
+  },
+  tla: {
+    name: 'TLA',
+    fullName: 'Traducción en Lenguaje Actual',
+    shortName: 'TLA',
+    publisher: 'Sociedades Bíblicas Unidas',
+    description: 'Biblia en lenguaje sencillo y actual',
+    copyright: 'Copyright © 2000, 2002, 2004 by Sociedades Bíblicas Unidas',
     requiresTagCleaning: false,
   },
 };
@@ -193,7 +249,7 @@ async function exportBibleToXml(bibleCode) {
     // Step 1: Get database metadata from info table
     log(`\n📊 Reading database metadata...`, 'cyan');
 
-    let dbMetadata = {};
+    const dbMetadata = {};
     try {
       const infoQuery = `SELECT name, value FROM info`;
       const infoResult = execSync(`sqlite3 "${dbPath}" -separator "|" "${infoQuery}"`, {

@@ -1,4 +1,5 @@
 import { processVerseText } from '../api/getData.js';
+import obsWebSocket from './obsWebSocket.js';
 
 const containerElement = document.getElementById('bg-container');
 const messageDisplay = document.getElementById('messageDisplay');
@@ -140,7 +141,14 @@ function applyTitleBoxState() {
  * Handles incoming text messages and displays them with pre-calculated font size
  * This is the main message receiver for verse display
  */
-messageChannel.onmessage = (event) => {
+/**
+ * Named (not inline) so the OBS WebSocket CustomEvent relay below can call
+ * the exact same logic BroadcastChannel uses — the Custom Dock and the
+ * Browser Source live in separate storage/messaging partitions in recent
+ * OBS versions (obsproject/obs-studio#6202), so BroadcastChannel alone
+ * never reaches this page when both run for real inside OBS.
+ */
+function handleVerseMessage(event) {
   const message = typeof event.data === 'string' ? processVerseText(event.data) : event.data;
 
   console.log('📨 Message received, pre-calculating font size...');
@@ -174,6 +182,13 @@ messageChannel.onmessage = (event) => {
 
   localStorage.setItem('savedMessage', message);
 
+  // updateMessagePadding() (below) decides the title's reserved top space by
+  // checking for this class — it used to only get added later, by the
+  // separate ResizeObserver-driven styleManager path (browser_app.js), so
+  // padding briefly applied as if there were no title on every verse change.
+  messageDisplay.classList.toggle('message-with-title', hasTitle);
+  messageDisplay.classList.toggle('message-without-title', !hasTitle);
+
   applyTitleConfiguration();
   applyTitleBoxState();
 
@@ -183,37 +198,44 @@ messageChannel.onmessage = (event) => {
   messageDisplay.style.opacity = '1';
 
   console.log('✅ Text received with pre-calculated size');
-};
+}
 
-settingsChannel.onmessage = (event) => {
+messageChannel.onmessage = handleVerseMessage;
+
+function handleSettingsMessage(event) {
   switch (Object.keys(event.data)?.[0]) {
-    case 'selectedFont':
+    case 'selectedFont': {
       const selectedFont = event.data['selectedFont'];
       containerElement.style.fontFamily = selectedFont;
       localStorage.setItem('fontFamily', selectedFont);
       console.log('✅ Font changed:', selectedFont);
       break;
-    case 'opacityColor':
+    }
+    case 'opacityColor': {
       const opacityColor = event.data['opacityColor'];
       containerElement.style.backgroundColor = opacityColor;
       localStorage.setItem('bgColor', opacityColor);
       break;
-    case 'containerOpacity':
+    }
+    case 'containerOpacity': {
       const containerOpacity = event.data['containerOpacity'];
       containerElement.style.backgroundColor = containerOpacity;
       localStorage.setItem('bgColor', containerOpacity);
       break;
-    case 'roundedCorner':
+    }
+    case 'roundedCorner': {
       const roundedCorner = event.data['roundedCorner'];
       containerElement.style.borderRadius = roundedCorner + 'px';
       localStorage.setItem('borderRadius', roundedCorner);
       break;
-    case 'selectedBgColor':
+    }
+    case 'selectedBgColor': {
       const selectedBgColor = event.data['selectedBgColor'];
       containerElement.style.backgroundColor = selectedBgColor;
       localStorage.setItem('bgColor', selectedBgColor);
       break;
-    case 'selectedFontColor':
+    }
+    case 'selectedFontColor': {
       const selectedFontColor = event.data['selectedFontColor'];
       if (!localStorage.getItem('textGradient')) {
         if (messageDisplay) {
@@ -222,7 +244,8 @@ settingsChannel.onmessage = (event) => {
       }
       localStorage.setItem('fontColor', selectedFontColor);
       break;
-    case 'selectedTitleColor':
+    }
+    case 'selectedTitleColor': {
       const selectedTitleColor = event.data['selectedTitleColor'];
       const spans = document.querySelectorAll('#messageDisplay span');
       const strokeEnabledFromColor = localStorage.getItem('titleBoxStroke') !== 'false';
@@ -234,7 +257,8 @@ settingsChannel.onmessage = (event) => {
       });
       localStorage.setItem('titleColor', selectedTitleColor);
       break;
-    case 'titleAlignment':
+    }
+    case 'titleAlignment': {
       const alignment = event.data['titleAlignment'];
       const allSpans = document.querySelectorAll('#messageDisplay span');
       allSpans.forEach((span) => {
@@ -246,7 +270,8 @@ settingsChannel.onmessage = (event) => {
       localStorage.setItem('titleAlignment', alignment);
       console.log(`📐 Title alignment changed to: ${alignment}`);
       break;
-    case 'titleBoxEnabled':
+    }
+    case 'titleBoxEnabled': {
       const titleBoxEnabled = event.data['titleBoxEnabled'];
       const titleSpans = document.querySelectorAll('#messageDisplay span');
       titleSpans.forEach((span) => {
@@ -267,6 +292,7 @@ settingsChannel.onmessage = (event) => {
       localStorage.setItem('titleBoxEnabled', titleBoxEnabled);
       updateMessagePadding();
       break;
+    }
 
     case 'titleBoxSize':
       updateTitleBoxSize(event.data['titleBoxSize']);
@@ -338,44 +364,51 @@ settingsChannel.onmessage = (event) => {
     case 'titleStrokeWidth':
       updateTitleStrokeWidth(event.data['titleStrokeWidth']);
       break;
-    case 'currentBoldState':
+    case 'currentBoldState': {
       const currentBoldState = event.data['currentBoldState'];
       messageDisplay.style.fontWeight = currentBoldState;
       localStorage.setItem('boldState', currentBoldState);
       break;
-    case 'currentItalicState':
+    }
+    case 'currentItalicState': {
       const currentItalicState = event.data['currentItalicState'];
       messageDisplay.style.fontStyle = currentItalicState;
       localStorage.setItem('italicState', currentItalicState);
       break;
-    case 'currentUnderlineState':
+    }
+    case 'currentUnderlineState': {
       const currentUnderlineState = event.data['currentUnderlineState'];
       messageDisplay.style.textDecoration = currentUnderlineState;
       localStorage.setItem('underlineState', currentUnderlineState);
       break;
-    case 'selectedTextAlignment':
+    }
+    case 'selectedTextAlignment': {
       const selectedTextAlignment = event.data['selectedTextAlignment'];
       messageDisplay.style.textAlign = selectedTextAlignment;
       localStorage.setItem('textAlign', selectedTextAlignment);
       break;
+    }
 
-    case 'backgroundType':
+    case 'backgroundType': {
       const backgroundType = event.data['backgroundType'];
       localStorage.setItem('backgroundType', backgroundType);
       break;
+    }
 
-    case 'backgroundGradient':
+    case 'backgroundGradient': {
       const backgroundGradient = event.data['backgroundGradient'];
       containerElement.style.background = backgroundGradient;
       localStorage.setItem('backgroundGradient', backgroundGradient);
       break;
+    }
 
-    case 'gradientColor2':
+    case 'gradientColor2': {
       const gradientColor2 = event.data['gradientColor2'];
       localStorage.setItem('gradientColor2', gradientColor2);
       break;
+    }
 
-    case 'textGradient':
+    case 'textGradient': {
       const textGradient = event.data['textGradient'];
       if (textGradient) {
         messageDisplay.style.background = textGradient;
@@ -392,8 +425,9 @@ settingsChannel.onmessage = (event) => {
         localStorage.removeItem('textGradient');
       }
       break;
+    }
 
-    case 'textShadow':
+    case 'textShadow': {
       const textShadow = event.data['textShadow'];
       if (textShadow === 'none') {
         applyTextEffectToContent('textShadow', 'none');
@@ -403,8 +437,9 @@ settingsChannel.onmessage = (event) => {
         localStorage.setItem('textShadow', textShadow);
       }
       break;
+    }
 
-    case 'textStroke':
+    case 'textStroke': {
       const textStroke = event.data['textStroke'];
       if (textStroke) {
         applyTextEffectToContent('webkitTextStroke', `${textStroke.width} ${textStroke.color}`);
@@ -418,8 +453,9 @@ settingsChannel.onmessage = (event) => {
         localStorage.removeItem('textStroke');
       }
       break;
+    }
 
-    case 'textGlow':
+    case 'textGlow': {
       const textGlow = event.data['textGlow'];
       if (textGlow) {
         const existingShadow = localStorage.getItem('textShadow');
@@ -432,22 +468,25 @@ settingsChannel.onmessage = (event) => {
         localStorage.removeItem('textGlow');
       }
       break;
+    }
 
-    case 'containerPadding':
+    case 'containerPadding': {
       const containerPadding = event.data['containerPadding'];
       localStorage.setItem('containerPadding', containerPadding);
       updateMessagePadding();
       console.log('✅ Padding updated:', containerPadding);
       break;
+    }
 
-    case 'containerMargin':
+    case 'containerMargin': {
       const containerMargin = event.data['containerMargin'];
       messageDisplay.style.margin = containerMargin + 'px';
       localStorage.setItem('containerMargin', containerMargin);
       console.log('✅ Margin updated:', containerMargin);
       break;
+    }
 
-    case 'textAnimation':
+    case 'textAnimation': {
       const textAnimation = event.data['textAnimation'];
       const animationDuration = event.data['animationDuration'] || '1s';
 
@@ -458,7 +497,8 @@ settingsChannel.onmessage = (event) => {
         'slide-in-top',
         'slide-in-bottom',
         'zoom-in',
-        'typewriter'
+        'typewriter',
+        'illuminate'
       );
 
       if (textAnimation && textAnimation !== 'none') {
@@ -486,16 +526,22 @@ settingsChannel.onmessage = (event) => {
           case 'typewriter':
             messageDisplay.classList.add('typewriter');
             break;
+          case 'illuminate':
+            messageDisplay.classList.add('illuminate');
+            break;
         }
       }
 
       localStorage.setItem('textAnimation', textAnimation);
       localStorage.setItem('animationDuration', animationDuration);
       break;
+    }
   }
-};
+}
 
-visibilityChannel.onmessage = (event) => {
+settingsChannel.onmessage = handleSettingsMessage;
+
+function handleVisibilityMessage(event) {
   if (event.data === 'hidden') {
     containerElement.style.display = 'none';
     console.log('🙈 Container hidden');
@@ -507,7 +553,9 @@ visibilityChannel.onmessage = (event) => {
     }
     console.log('👁️ Container shown');
   }
-};
+}
+
+visibilityChannel.onmessage = handleVisibilityMessage;
 
 fontAdjustChannel.onmessage = (event) => {
   if (event.data === 'adjust') {
@@ -519,6 +567,33 @@ fontAdjustChannel.onmessage = (event) => {
     }
   }
 };
+
+/**
+ * Relays the same three channels over OBS WebSocket's CustomEvent
+ * mechanism, which crosses the Custom Dock / Browser Source partition
+ * boundary that BroadcastChannel cannot. BroadcastChannel stays wired
+ * above too, so this page keeps working standalone in a plain browser
+ * (e.g. the Playwright smoke tests) without OBS WebSocket running.
+ */
+const SYNC_CHANNEL_HANDLERS = {
+  myChannel: handleVerseMessage,
+  bgContent: handleVisibilityMessage,
+  settings: handleSettingsMessage,
+};
+
+obsWebSocket.onCustomEvent((eventData) => {
+  const handler = eventData && SYNC_CHANNEL_HANDLERS[eventData.channel];
+  if (handler) {
+    handler({ data: eventData.data });
+  }
+});
+
+obsWebSocket.connect().catch((error) => {
+  console.warn(
+    '⚠️ Overlay could not connect to OBS WebSocket, falling back to BroadcastChannel only:',
+    error.message
+  );
+});
 
 function applyTitleBoxStyles(titleSpan) {
   const configs = {

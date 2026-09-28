@@ -22,10 +22,19 @@ body {
     overflow-y: hidden;
 }
 
-/* Transiciones suaves globales */
+/* Transiciones suaves para ajustes de estilo (color/fondo/sombra),
+   excluyendo font-size y padding: esas cambian por verso via el
+   algoritmo de auto-ajuste y deben aplicarse al instante, sin animar
+   un "crecimiento" visible del texto (ni del padding que reserva
+   espacio para el título) en cada verso nuevo. */
 #messageDisplay,
 .bg-container {
-    transition: all 0.3s ease-in-out;
+    transition:
+        color 0.3s ease-in-out,
+        background 0.3s ease-in-out,
+        background-color 0.3s ease-in-out,
+        text-shadow 0.3s ease-in-out,
+        opacity 0.3s ease-in-out;
 }
 
 /* ========================================
@@ -335,6 +344,35 @@ body {
     100% {
         width: 100%;
         border-right: none;
+    }
+}
+
+/* Aparición "Illuminate": el texto se funde a su color ya configurado
+   mientras un resplandor pasajero lo acompaña, como una mecha prendiendo.
+   currentColor hace que el resplandor siga automáticamente el color de
+   fuente que el usuario ya eligió en Settings, sin fijar un color propio.
+   Solo anima opacity/filter — nunca font-size ni padding. */
+.illuminate {
+    animation: illuminate cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes illuminate {
+    0% {
+        opacity: 0;
+        filter: drop-shadow(0 0 0 currentcolor);
+    }
+
+    38% {
+        opacity: 1;
+    }
+
+    50% {
+        filter: drop-shadow(0 0 14px currentcolor);
+    }
+
+    100% {
+        opacity: 1;
+        filter: drop-shadow(0 0 0 currentcolor);
     }
 }
 

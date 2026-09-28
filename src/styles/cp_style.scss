@@ -1,4 +1,112 @@
-* { 
+/* ========================================
+   THEME TOKENS
+   :root = dark (default, matches the previous hardcoded look exactly).
+   [data-theme="light"] overrides the ones that should actually flip;
+   brand/status colors (accent, success, danger, live, highlight) stay
+   identical in both themes since they already read fine on light and
+   dark surfaces.
+   ======================================== */
+:root {
+  --bg-page: #1a1a1a;
+  --bg-deep: #1a1a2e;
+  --bg-main: #222;
+  --bg-surface: #2a2a2a;
+  --bg-surface-2: #333;
+  --bg-elevated: #444;
+  --bg-elevated-2: #555;
+  --bg-hover: #666;
+  --text-primary: #fff;
+  --text-secondary: #ccc;
+  --text-tertiary: #aaa;
+  --text-muted: #888;
+  --border-subtle: #3a3a3a;
+  --accent: #007acc;
+  --accent-dark: #005c99;
+  --accent-light: #09f;
+  --accent-alt: #4a90e2;
+  --highlight: #38bdf8;
+  --success: #4CAF50;
+  --success-hover: #45a049;
+  --danger: #f44336;
+  --live: #ff6b6b;
+  --live-strong: #ff4d4d;
+  --overlay-rgb: 255, 255, 255;
+}
+
+:root[data-theme="light"] {
+  --bg-page: #eef0f3;
+  --bg-deep: #e6e8f5;
+  --bg-main: #e4e7ec;
+  --bg-surface: #ffffff;
+  --bg-surface-2: #eef0f3;
+  --bg-elevated: #dde1e6;
+  --bg-elevated-2: #ccd1d8;
+  --bg-hover: #888e97;
+  --text-primary: #16181c;
+  --text-secondary: #2e3238;
+  --text-tertiary: #565b63;
+  --text-muted: #6b7078;
+  --border-subtle: #d7dae0;
+  --accent: #007acc;
+  --accent-dark: #005c99;
+  --accent-light: #09f;
+  --accent-alt: #4a90e2;
+  --highlight: #38bdf8;
+  --success: #4CAF50;
+  --success-hover: #45a049;
+  --danger: #f44336;
+  --live: #ff6b6b;
+  --live-strong: #ff4d4d;
+  --overlay-rgb: 0, 0, 0;
+}
+
+/* Lives inline in the Settings tab's Quick Settings header — it used to
+   float fixed top-right over every tab, where it got in the way of the
+   Bible search UI. */
+.settings-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.settings-section-header h3 {
+  margin: 0;
+}
+
+.settings-section-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.settings-section-header-actions .button-inline {
+  margin-left: 0;
+}
+
+.theme-toggle {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  margin: 0;
+  border: 1px solid var(--bg-elevated-2);
+  border-radius: 50%;
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.theme-toggle:hover {
+  background-color: var(--bg-elevated);
+}
+
+* {
   box-sizing: border-box; 
   box-sizing: border-box; 
   box-sizing: border-box;
@@ -8,8 +116,8 @@
 } 
 
 body {
-  background-color: #1a1a1a;
-  color: #fff;
+  background-color: var(--bg-page);
+  color: var(--text-primary);
   font-family: Arial, sans-serif;
   margin: 0;
   padding: 0;
@@ -21,8 +129,8 @@ body {
 .main{
   width: 100%;
   height: 100vh;
-  background-color: #222;
-  color: #fff;
+  background-color: var(--bg-main);
+  color: var(--text-primary);
   padding: 0;
   margin: 0;
   display: flex;
@@ -54,17 +162,17 @@ body {
 }
 
 .tab-area::-webkit-scrollbar-track {
-  background: #333;
+  background: var(--bg-surface-2);
   border-radius: 4px;
 }
 
 .tab-area::-webkit-scrollbar-thumb {
-  background: #666;
+  background: var(--bg-hover);
   border-radius: 4px;
 }
 
 .tab-area::-webkit-scrollbar-thumb:hover {
-  background: #888;
+  background: var(--text-muted);
 }
 
 /* Mejorar el responsive del contenedor */
@@ -117,18 +225,18 @@ body {
   flex-direction: column;
   gap: 4px;
   padding: 10px;
-  background: rgb(48, 54, 61, 0.75);
-  border: 1px solid #3b3f46;
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-subtle);
   border-radius: 6px;
   text-decoration: none;
-  color: #e2e8f0;
+  color: var(--text-secondary);
   transition: border-color 0.2s ease, transform 0.2s ease, background 0.2s ease;
 }
 
 .settings-map-item:hover,
 .settings-map-item:focus-visible {
   background: rgb(56, 189, 248, 0.1);
-  border-color: #38bdf8;
+  border-color: var(--highlight);
   transform: translateY(-1px);
   outline: none;
 }
@@ -138,16 +246,16 @@ body {
   font-weight: 600;
   letter-spacing: 0.3px;
   text-transform: uppercase;
-  color: #f1f5f9;
+  color: var(--text-secondary);
 }
 
 .settings-map-subtitle {
   font-size: 11px;
-  color: #94a3b8;
+  color: var(--text-tertiary);
 }
 
 .settings-section--focus {
-  border-left-color: #38bdf8;
+  border-left-color: var(--highlight);
   box-shadow: 0 0 0 1px rgb(56, 189, 248, 0.15);
 }
 
@@ -199,8 +307,8 @@ textarea{
   padding: 10px;
   font-size: 20px;
   border: none;
-  background-color: #363636;
-  color: #fff;
+  background-color: var(--bg-surface-2);
+  color: var(--text-primary);
   resize: none;
   border-radius: 8px;
   margin-top: 10px;
@@ -212,9 +320,9 @@ textarea{
 .settings-section {
   margin-bottom: 8px;
   padding: 8px;
-  background-color: #2a2a2a;
+  background-color: var(--bg-surface);
   border-radius: 6px;
-  border-left: 3px solid #007acc;
+  border-left: 3px solid var(--accent);
   flex-shrink: 0;
   height: fit-content;
   min-width: 0;
@@ -229,7 +337,7 @@ textarea{
 }
 
 .settings-section h3 {
-  color: #007acc;
+  color: var(--accent);
   margin-bottom: 8px;
   font-size: 12px;
   font-weight: bold;
@@ -243,7 +351,7 @@ textarea{
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.4px;
-  color: #cdd6e3;
+  color: var(--text-secondary);
   margin: 12px 0 6px;
 }
 
@@ -251,13 +359,78 @@ textarea{
   margin: 0 0 10px;
   font-size: 12px;
   line-height: 1.4;
-  color: #b5bfd4;
+  color: var(--text-tertiary);
+}
+
+/* Pastilla de estado en la parte superior del tab Settings: si el overlay
+   está visible ahora mismo, cualquier cambio se ve en vivo. */
+.on-air-pill {
+  margin-bottom: 10px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.on-air-pill.is-off {
+  background-color: var(--bg-surface);
+  color: var(--text-tertiary);
+  font-weight: 400;
+}
+
+.on-air-pill.is-live {
+  background-color: rgb(200, 40, 40, 0.15);
+  color: var(--live);
+  border: 1px solid rgb(200, 40, 40, 0.4);
+}
+
+/* Acordeón: cada .settings-section conserva su fondo/borde, pero su
+   contenido vive dentro de un <details> nativo con resumen de estado. */
+.settings-accordion-item {
+  width: 100%;
+}
+
+.settings-accordion-summary {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  cursor: pointer;
+  list-style-position: outside;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.settings-accordion-summary::-webkit-details-marker {
+  color: var(--accent);
+}
+
+.settings-accordion-title {
+  white-space: nowrap;
+}
+
+.settings-accordion-state {
+  overflow: hidden;
+  color: var(--text-tertiary);
+  font-size: 11px;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settings-accordion-body {
+  margin-top: 10px;
 }
 
 .settings-divider {
   margin: 16px 0;
   border: none;
-  border-top: 1px solid #3b3b3b;
+  border-top: 1px solid var(--border-subtle);
 }
 
 .quick-controls {
@@ -283,16 +456,16 @@ textarea{
 .quick-selects select {
   min-width: 130px;
   padding: 6px 10px;
-  background-color: #363636;
-  color: #fff;
-  border: 1px solid #555;
+  background-color: var(--bg-surface-2);
+  color: var(--text-primary);
+  border: 1px solid var(--bg-elevated-2);
   border-radius: 4px;
   font-size: 12px;
 }
 
 .quick-label {
   font-size: 11px;
-  color: #9ea9bd;
+  color: var(--text-tertiary);
 }
 
 .button-inline {
@@ -300,7 +473,7 @@ textarea{
   margin-left: 10px;
   font-size: 11px;
   background-color: #30363d;
-  color: #fff;
+  color: var(--text-primary);
   border: 1px solid #4a4f58;
   border-radius: 4px;
   cursor: pointer;
@@ -344,7 +517,7 @@ textarea{
   align-items: center;
   gap: 8px;
   font-size: 12px;
-  color: #cdd6e3;
+  color: var(--text-secondary);
 }
 
 .checkbox-inline input[type="checkbox"] {
@@ -355,13 +528,13 @@ textarea{
 .settings-subsection {
   margin-top: 8px;
   padding: 6px;
-  background-color: #333;
+  background-color: var(--bg-surface-2);
   border-radius: 4px;
-  border-left: 2px solid #555;
+  border-left: 2px solid var(--bg-elevated-2);
 }
 
 .settings-subsection h4 {
-  color: #ccc;
+  color: var(--text-secondary);
   margin-bottom: 6px;
   font-size: 11px;
   font-weight: bold;
@@ -452,7 +625,7 @@ textarea{
 
 .preset-btn {
   padding: 8px 16px;
-  background: linear-gradient(45deg, #007acc, #005c99);
+  background: linear-gradient(45deg, var(--accent), var(--accent-dark));
   color: white;
   border: none;
   border-radius: 6px;
@@ -465,7 +638,7 @@ textarea{
 }
 
 .preset-btn:hover {
-  background: linear-gradient(45deg, #09f, #007acc);
+  background: linear-gradient(45deg, var(--accent-light), var(--accent));
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgb(0, 122, 204, 0.3);
 }
@@ -484,9 +657,9 @@ textarea{
 .gradient-type select {
   width: 100%;
   padding: 8px 10px;
-  background-color: #363636;
-  color: #fff;
-  border: 1px solid #555;
+  background-color: var(--bg-surface-2);
+  color: var(--text-primary);
+  border: 1px solid var(--bg-elevated-2);
   border-radius: 4px;
   font-size: 13px;
   min-height: 36px;
@@ -511,7 +684,7 @@ textarea{
   display: block;
   margin-bottom: 5px;
   font-size: 12px;
-  color: #ccc;
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -529,15 +702,15 @@ textarea{
 .gradient-text-controls {
   margin-top: 15px;
   padding-top: 15px;
-  border-top: 1px solid #444;
+  border-top: 1px solid var(--bg-elevated);
 }
 
 .gradient-text-controls select {
   width: 100%;
   padding: 8px 10px;
-  background-color: #363636;
-  color: #fff;
-  border: 1px solid #555;
+  background-color: var(--bg-surface-2);
+  color: var(--text-primary);
+  border: 1px solid var(--bg-elevated-2);
   border-radius: 4px;
   margin-bottom: 10px;
   font-size: 13px;
@@ -564,11 +737,11 @@ textarea{
 .effect-toggle input[type="checkbox"] {
   width: 18px;
   height: 18px;
-  accent-color: #007acc;
+  accent-color: var(--accent);
 }
 
 .effect-toggle label {
-  color: #fff;
+  color: var(--text-primary);
   font-size: 14px;
   cursor: pointer;
   user-select: none;
@@ -583,7 +756,7 @@ textarea{
   padding: 10px;
   background-color: #1e1e1e;
   border-radius: 4px;
-  border-left: 3px solid #007acc;
+  border-left: 3px solid var(--accent);
 }
 
 /* Sliders mejorados con displays */
@@ -595,7 +768,7 @@ textarea{
   display: block;
   margin-bottom: 5px;
   font-size: 12px;
-  color: #ccc;
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -604,7 +777,7 @@ textarea{
   width: 100%;
   height: 6px;
   border-radius: 3px;
-  background: #444;
+  background: var(--bg-elevated);
   outline: none;
   appearance: none;
   margin-bottom: 5px;
@@ -616,7 +789,7 @@ textarea{
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: linear-gradient(45deg, #007acc, #09f);
+  background: linear-gradient(45deg, var(--accent), var(--accent-light));
   cursor: pointer;
   box-shadow: 0 2px 4px rgb(0, 0, 0, 0.3);
 }
@@ -625,7 +798,7 @@ textarea{
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: linear-gradient(45deg, #007acc, #09f);
+  background: linear-gradient(45deg, var(--accent), var(--accent-light));
   cursor: pointer;
   border: none;
   box-shadow: 0 2px 4px rgb(0, 0, 0, 0.3);
@@ -642,7 +815,7 @@ textarea{
 #opacityDisplay,
 #paddingDisplay,
 #animationDurationDisplay {
-  color: #007acc;
+  color: var(--accent);
   font-weight: bold;
   font-size: 12px;
   margin-left: 10px;
@@ -658,9 +831,9 @@ textarea{
 .animation-controls select {
   width: 100%;
   padding: 8px 10px;
-  background-color: #363636;
-  color: #fff;
-  border: 1px solid #555;
+  background-color: var(--bg-surface-2);
+  color: var(--text-primary);
+  border: 1px solid var(--bg-elevated-2);
   border-radius: 4px;
   font-size: 13px;
   min-height: 36px;
@@ -674,7 +847,7 @@ textarea{
 .container {
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: #007acc #2a2a2a;
+  scrollbar-color: var(--accent) var(--bg-surface);
 }
 
 .container::-webkit-scrollbar {
@@ -682,17 +855,17 @@ textarea{
 }
 
 .container::-webkit-scrollbar-track {
-  background: #2a2a2a;
+  background: var(--bg-surface);
   border-radius: 4px;
 }
 
 .container::-webkit-scrollbar-thumb {
-  background: linear-gradient(45deg, #007acc, #09f);
+  background: linear-gradient(45deg, var(--accent), var(--accent-light));
   border-radius: 4px;
 }
 
 .container::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(45deg, #09f, #007acc);
+  background: linear-gradient(45deg, var(--accent-light), var(--accent));
 }
 
 /* Responsive para pantallas pequeñas */
@@ -721,13 +894,13 @@ textarea{
 
 /* Estados hover para mejor UX */
 .settings-section:hover {
-  background-color: #333;
-  border-left-color: #09f;
+  background-color: var(--bg-surface-2);
+  border-left-color: var(--accent-light);
 }
 
 /* Indicadores visuales para estados activos */
 .effect-toggle input[type="checkbox"]:checked + label {
-  color: #007acc;
+  color: var(--accent);
   font-weight: bold;
 }
 
@@ -738,11 +911,11 @@ textarea{
 select{
   width: 100%;
   font-size: 12px;
-  background-color: #363636;
-  color: #fff;
+  background-color: var(--bg-surface-2);
+  color: var(--text-primary);
   border-radius: 3px;
   padding: 6px 8px;
-  border: 1px solid #555;
+  border: 1px solid var(--bg-elevated-2);
   box-sizing: border-box;
   margin-bottom: 6px;
   height: 32px;
@@ -753,8 +926,8 @@ select{
 }
 
 select:focus {
-  outline: 1px solid #007acc;
-  border-color: #007acc;
+  outline: 1px solid var(--accent);
+  border-color: var(--accent);
 }
 
 /* Botones más compactos */
@@ -762,8 +935,8 @@ button {
   margin-top: 6px;
   padding: 6px 8px;
   font-size: 10px;
-  background-color: #363636;
-  color: #fff;
+  background-color: var(--bg-surface-2);
+  color: var(--text-primary);
   border: none;
   border-radius: 4px;
   cursor: pointer;
@@ -771,7 +944,7 @@ button {
 }
 
 button:hover {
-  background-color: #555;
+  background-color: var(--bg-elevated-2);
 }
 
 /* Inputs de texto más compactos */
@@ -796,9 +969,9 @@ input[type="text"], textarea {
   margin-top: 10px;
   font-size: 15px;
   border: none;
-  background-color: #363636;
+  background-color: var(--bg-surface-2);
   font-family: "monospace sans-serif";
-  color: #fff;
+  color: var(--text-primary);
   resize: none;
   border-radius: 8px;
 }
@@ -807,8 +980,8 @@ button {
   margin-top: 10px;
   padding: 10px;
   font-size: 16px;
-  background-color: #363636;
-  color: #fff;
+  background-color: var(--bg-surface-2);
+  color: var(--text-primary);
   border: none;
   cursor: pointer;
   width: 100%;
@@ -818,8 +991,8 @@ button {
 }
 
 button:active {
-  background-color: #222;
-  color: #ccc;
+  background-color: var(--bg-main);
+  color: var(--text-secondary);
 }
   
 @media (width <= 600px) {
@@ -845,8 +1018,8 @@ button:active {
 .tabs {
   display: flex;
   justify-content: space-around;
-  background-color: #333;
-  border-top: 1px solid #555;
+  background-color: var(--bg-surface-2);
+  border-top: 1px solid var(--bg-elevated-2);
   flex-shrink: 0;
   min-height: 40px;
   max-height: 40px;
@@ -855,8 +1028,8 @@ button:active {
 .tab-button {
   flex: 1;
   padding: 8px 4px;
-  background-color: #333;
-  color: #ccc;
+  background-color: var(--bg-surface-2);
+  color: var(--text-secondary);
   border: none;
   cursor: pointer;
   font-size: 10px;
@@ -869,13 +1042,13 @@ button:active {
 }
 
 .tab-button:hover {
-  background-color: #555;
-  color: #fff;
+  background-color: var(--bg-elevated-2);
+  color: var(--text-primary);
 }
 
 .tab-button.active {
-  background-color: #007acc;
-  color: #fff;
+  background-color: var(--accent);
+  color: var(--text-primary);
 }
 
 /* Responsive para tabs */
@@ -891,66 +1064,139 @@ button:active {
   }
 }
 
-.handle-container-button {
+.panel-bottom-bar {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
+  flex-direction: row;
+  justify-content: space-between;
   align-items: center;
   width: 100%;
   padding: 10px;
+  gap: 8px;
 }
 
 .tab-button:not(:last-child) {
-  margin-right: 10px; 
+  margin-right: 10px;
 }
 
 .bible-search{
-  font-size: 1.5em;
+  font-size: 1em;
   display: flex;
   flex-direction: row;
-  justify-content: space-around;
+  align-items: stretch;
   margin: 5px 0;
   width: 100%;
+  min-height: 46px;
   flex-shrink: 0;
-  gap: 5px;
-}
-
-
-#bible-submit{
-  font-size: 0.6em;
-  border-radius: 5px;
-  border: none;
-  padding: 0 10px;
+  gap: 6px;
 }
 
 .input-suggest{
+  flex: 1;
   margin-bottom: 5px;
 }
 
 #bible-input{
   height: 100%;
   width: 100%;
-  border-radius: 5px;
+  border-radius: 6px;
   border: none;
-  padding: 0 10px;
+  padding: 0 14px;
+  font-size: 15px;
+  box-sizing: border-box;
 }
 
 #bible-input{
-  background-color: #ccc;
-  color: #222;
-  min-width: 50%;
+  background-color: var(--text-secondary);
+  color: var(--bg-main);
 }
 
-#bible-submit{
+/* Referencia / Texto, folded into the input row as a compact 2-way toggle
+   instead of a full-width tab row above it — the active pill just lights
+   up (see appState.js getSearchMode()), no separate row needed. */
+.search-mode-toggle {
+  align-self: stretch;
+  display: flex;
+  flex-shrink: 0;
+  gap: 3px;
+  padding: 3px;
+  background-color: var(--bg-surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+}
+
+.mode-pill {
+  flex: 0 0 auto;
+  width: auto;
+  max-width: none;
+  margin: 0;
+  padding: 0 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  color: var(--text-secondary);
+  background-color: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.mode-pill:hover {
+  color: var(--text-primary);
+}
+
+.mode-pill.active {
+  background-color: var(--accent);
+  color: #fff;
+}
+
+.bible-submit-btn {
+  flex: 0 0 auto;
+  width: auto;
+  max-width: none;
+  min-width: 46px;
+  margin: 0;
+  padding: 0 14px;
+  font-size: 20px;
+  border-radius: 6px;
+  border: none;
   background-color: #ddf;
   color: #000;
+  cursor: pointer;
 }
 
-#history{
-  font-size: 0.6em;
+.search-result-count {
+  margin: -2px 0 2px;
+  font-size: 11px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.verse-highlight {
+  background-color: rgb(255, 214, 0, 0.35);
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+.history-btn{
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  min-height: 46px;
+  font-size: 13px;
+  font-weight: 600;
   background-color: #252;
-  border-radius: 5px;
-  padding: 5px;
+  border-radius: 6px;
+  padding: 0 16px;
+  cursor: pointer;
+}
+
+.show-overlay-btn {
+  flex: 1;
+  min-height: 46px;
+  font-size: 16px;
+  font-weight: 700;
 }
 
 .bible{
@@ -965,7 +1211,7 @@ button:active {
 
 .bible p{
   margin: 5px 0;
-  background-color: #222;
+  background-color: var(--bg-main);
   border-radius: 8px;
   padding: 12px 15px;
   cursor: pointer;
@@ -980,25 +1226,25 @@ button:active {
 }
 
 .bible p:hover {
-  background-color: #333;
+  background-color: var(--bg-surface-2);
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgb(0, 0, 0, 0.3);
-  border-left-color: #007acc;
+  border-left-color: var(--accent);
 }
 
 .bible p:active {
   transform: translateY(0);
-  background-color: #444;
+  background-color: var(--bg-elevated);
 }
 
 .bible p.selected {
   background-color: #225 !important;
-  border-left-color: #007acc !important;
+  border-left-color: var(--accent) !important;
   box-shadow: 0 4px 12px rgb(0, 122, 204, 0.4);
 }
 
 .bible p:focus {
-  outline: 2px solid #007acc;
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
@@ -1024,7 +1270,7 @@ button:active {
 
 .bible-verse{
   padding: 10px 5px;
-  background-color: #444;
+  background-color: var(--bg-elevated);
   border-radius: 5px;
   margin-right: 5px;
   margin-bottom: 10px;
@@ -1035,25 +1281,25 @@ button:active {
   padding: 14px;
   margin: 0;
   margin-bottom: 8px;
-  background-color: #2a2a2a;
+  background-color: var(--bg-surface);
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
   border-left: 3px solid transparent;
   line-height: 1.5;
   font-size: 15px;
-  color: #e0e0e0;
+  color: var(--text-secondary);
 }
 
 #bible-verse p:hover {
-  background-color: #333;
-  border-left-color: #4a90e2;
+  background-color: var(--bg-surface-2);
+  border-left-color: var(--accent-alt);
   transform: translateX(2px);
 }
 
 #bible-verse p.selected {
   background-color: #2a3a5a;
-  border-left-color: #4a90e2;
+  border-left-color: var(--accent-alt);
 }
 
 /* Estilo para el título del versículo (span) */
@@ -1061,7 +1307,7 @@ button:active {
   display: inline-block;
   width: 15%;
   font-weight: 600;
-  color: #4a90e2;
+  color: var(--accent-alt);
   font-size: 11px;
   line-height: 1.3;
   margin-bottom: 0;
@@ -1080,7 +1326,146 @@ button:active {
   padding-top: 15px;
   font-size: 15px;
   line-height: 1.5;
-  color: #e0e0e0;
+  color: var(--text-secondary);
+}
+
+/* Franja de estado "en directo": qué versículo está realmente visible en
+   el overlay ahora mismo, distinto de "selected" (lo último que tocaste). */
+.on-air-status {
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.on-air-status.is-empty {
+  background-color: var(--bg-surface);
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.on-air-status.is-ready {
+  background-color: var(--bg-surface);
+  color: var(--text-tertiary);
+  font-weight: 400;
+}
+
+/* "En directo" carries real weight: sticky so it survives scrolling a long
+   result list, bigger and bolder than any other row — it answers "what is
+   the audience seeing right now", which a highlighted row alone can't do
+   once it scrolls out of view. Red lives only here and on .on-air-row. */
+.on-air-status.is-live {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  background-color: rgb(200, 40, 40, 0.18);
+  color: var(--live);
+  border: 1px solid var(--live-strong);
+  box-shadow: 0 2px 8px rgb(200, 40, 40, 0.25);
+}
+
+.on-air-status.is-live .on-air-label {
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.on-air-status.is-live .on-air-ref {
+  flex-shrink: 0;
+}
+
+.on-air-status.is-live .on-air-preview {
+  flex: 1;
+  min-width: 0;
+  font-weight: 400;
+  text-transform: none;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.on-air-status.is-live .on-air-jump {
+  flex: 0 0 auto;
+  width: auto;
+  max-width: none;
+  margin: 0;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--live);
+  background-color: transparent;
+  border: 1px solid var(--live-strong);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.on-air-dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin-right: 7px;
+  border-radius: 50%;
+  background-color: var(--live-strong);
+  box-shadow: 0 0 8px rgb(255, 77, 77, 0.9);
+}
+
+/* Fila actualmente en aire: distinta de .selected (azul) para no confundir
+   "lo último que clickeaste" con "lo que la audiencia ve ahora mismo". */
+#bible-verse p.on-air-row {
+  border-left-color: var(--live-strong);
+  box-shadow: 0 0 0 1px rgb(255, 77, 77, 0.4);
+}
+
+/* Encabezado de grupo cuando varios resultados caen en el mismo capítulo */
+.verse-group-header {
+  margin: 12px 0 4px;
+  padding: 4px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.verse-group-header:first-child {
+  margin-top: 0;
+}
+
+/* Fila dentro de un grupo: la referencia completa ya está en el encabezado
+   (queda en el DOM, oculta, para que sendMessage.js siga leyendo el título
+   completo), así que solo se muestra un número de verso compacto. */
+#bible-verse p.grouped > span:first-child {
+  display: none;
+}
+
+#bible-verse p.grouped .verse-num-badge {
+  display: inline-block;
+  width: 22px;
+  margin-right: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent-alt);
+  vertical-align: top;
+  opacity: 0.75;
+}
+
+#bible-verse p.grouped .verse-text {
+  display: inline;
+  width: auto;
+  padding-top: 0;
+}
+
+#bible-verse p.grouped {
+  padding-top: 10px;
+  padding-bottom: 10px;
 }
 
 /* Styling for the scroll bar */
@@ -1089,17 +1474,17 @@ button:active {
 }
 
 ::-webkit-scrollbar-track {
-  background-color: #333;
+  background-color: var(--bg-surface-2);
   border-radius: 12px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #666;
+  background-color: var(--bg-hover);
   border-radius: 12px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: #888;
+  background-color: var(--text-muted);
 }
 
 .settings{
@@ -1110,7 +1495,7 @@ button:active {
 
 
 .settings span{
-  background-color: #555;
+  background-color: var(--bg-elevated-2);
   padding: 5px;
   margin: 5px;
   border-radius: 5px;
@@ -1118,7 +1503,7 @@ button:active {
 
 .settings span:hover {
   background-color: #999;
-  color: #222;
+  color: var(--bg-main);
   padding: 5px;
   margin: 5px;
   border-radius: 5px;
@@ -1126,7 +1511,7 @@ button:active {
 
 
 .color-picker{
-  background-color: #444;
+  background-color: var(--bg-elevated);
   padding: 5px;
   border-radius: 5px;
   margin-right: 10px;
@@ -1161,7 +1546,7 @@ button:active {
   appearance: none;
   width: 20px;
   height: 20px; 
-  background: #555;
+  background: var(--bg-elevated-2);
   cursor: pointer;
   border-radius: 50%;
   transition: background 0.2s;
@@ -1171,33 +1556,44 @@ button:active {
   background: #050;
 }
 
+/* Tamaños de toque pensados para dedo, no cursor: el panel vive en un
+   dock estrecho tipo móvil, así que cada fila necesita >=44px de alto. */
 #suggestions {
   position: absolute;
-  z-index: 1;
+  z-index: 20;
   list-style-type: none;
-  margin: 0;
+  margin: 4px 0 0;
   padding: 0;
-  border-top: none;
-  border-radius: 5px;
-  box-shadow: 0 3px 5px rgb(0, 0, 0, 0.3);
-  background-color: #222;
-  max-height: 150px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  box-shadow: 0 6px 16px rgb(0, 0, 0, 0.4);
+  background-color: var(--bg-elevated);
+  max-height: 260px;
   overflow-y: auto;
   width: 100%;
-  font-size: 0.6em;
+  font-size: 15px;
 }
 
 #suggestions li {
-  padding: 10px;
+  min-height: 44px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
   cursor: pointer;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+#suggestions li:last-child {
+  border-bottom: none;
 }
 
 #suggestions li:hover {
-  background-color: #444;
+  background-color: var(--bg-surface-2);
 }
 
 .selected{
-  background-color: #333;
+  background-color: var(--bg-surface-2);
 }
 
 .verse{
@@ -1220,7 +1616,62 @@ button:active {
 }
 
 .select-bible-version{
-  width: 40%;
+  display: none;
+}
+
+/* Chips de biblia: reemplazo visual del <select>, que sigue existiendo
+   oculto como fuente de verdad (control_app.js lo mantiene sincronizado).
+   flex-wrap (no scroll horizontal) para que las 9 biblias queden visibles
+   de un vistazo: más fácil elegir que tener que descubrir un scroll oculto.
+   min-width: 0 evita que este item empuje de ancho al .container padre
+   (gotcha clásico de flex-direction: column, que si no lo forzaba a 999px
+   y generaba una barra de scroll horizontal en toda la página). */
+.bible-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  min-width: 0;
+  flex-shrink: 0;
+}
+
+.bible-chip {
+  flex: 0 0 auto;
+  width: auto;
+  max-width: none;
+  margin: 0;
+  min-height: 26px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  background-color: var(--bg-surface-2);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.bible-chip:hover {
+  border-color: var(--accent);
+  color: var(--text-primary);
+}
+
+.bible-chip.active {
+  background-color: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+/* The Bible actually on air right now — independent of .active (merely
+   "selected"): browsing to another translation without showing a verse
+   from it keeps this chip red, so the operator always knows what the
+   audience is seeing. Same red language as .on-air-status.is-live. */
+.bible-chip.live {
+  background-color: var(--live-strong);
+  border-color: var(--live-strong);
+  color: #fff;
+  box-shadow: 0 0 0 1px rgb(255, 77, 77, 0.4);
 }
 
 /* ========== FIXES ADICIONALES PARA SCROLL ========== */
@@ -1243,7 +1694,7 @@ button:active {
 }
 
 /* Mejorar el handle del contenedor de botones */
-.handle-container-button {
+.panel-bottom-bar {
   padding: 8px;
   flex-shrink: 0;
 }
@@ -1355,7 +1806,7 @@ button:active {
   align-items: center;
   margin-bottom: 24px;
   padding-bottom: 16px;
-  border-bottom: 2px solid #333;
+  border-bottom: 2px solid var(--bg-surface-2);
 }
 
 .obs-header h2 {
@@ -1369,7 +1820,7 @@ button:active {
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  background: rgb(255, 255, 255, 0.05);
+  background: rgb(var(--overlay-rgb), 0.05);
   border-radius: 20px;
   font-size: 14px;
 }
@@ -1383,12 +1834,12 @@ button:active {
 }
 
 .status-connected {
-  background-color: #4CAF50;
+  background-color: var(--success);
   animation: pulse 2s infinite;
 }
 
 .status-disconnected {
-  background-color: #f44336;
+  background-color: var(--danger);
 }
 
 @keyframes pulse {
@@ -1397,7 +1848,7 @@ button:active {
 }
 
 .obs-section {
-  background: rgb(255, 255, 255, 0.05);
+  background: rgb(var(--overlay-rgb), 0.05);
   border-radius: 8px;
   padding: 16px;
   margin-bottom: 16px;
@@ -1407,7 +1858,7 @@ button:active {
   font-size: 18px;
   font-weight: bold;
   margin: 0 0 16px;
-  color: #4CAF50;
+  color: var(--success);
 }
 
 .obs-help-text {
@@ -1432,29 +1883,29 @@ button:active {
 
 .form-group small {
   font-size: 11px;
-  color: #888;
+  color: var(--text-muted);
   font-style: italic;
 }
 
 .form-group label {
   font-size: 14px;
   font-weight: 500;
-  color: #aaa;
+  color: var(--text-tertiary);
 }
 
 .form-group input {
   padding: 10px;
-  background: rgb(255, 255, 255, 0.1);
-  border: 1px solid rgb(255, 255, 255, 0.2);
+  background: rgb(var(--overlay-rgb), 0.1);
+  border: 1px solid rgb(var(--overlay-rgb), 0.2);
   border-radius: 4px;
-  color: #fff;
+  color: var(--text-primary);
   font-size: 14px;
 }
 
 .form-group input:focus {
   outline: none;
-  border-color: #4CAF50;
-  background: rgb(255, 255, 255, 0.15);
+  border-color: var(--success);
+  background: rgb(var(--overlay-rgb), 0.15);
 }
 
 .form-actions {
@@ -1466,7 +1917,7 @@ button:active {
 
 .primary-btn {
   padding: 10px 20px;
-  background: #4CAF50;
+  background: var(--success);
   color: white;
   border: none;
   border-radius: 4px;
@@ -1477,20 +1928,20 @@ button:active {
 }
 
 .primary-btn:hover:not(:disabled) {
-  background: #45a049;
+  background: var(--success-hover);
 }
 
 .primary-btn:disabled {
-  background: #555;
+  background: var(--bg-elevated-2);
   cursor: not-allowed;
   opacity: 0.5;
 }
 
 .secondary-btn {
   padding: 10px 20px;
-  background: rgb(255, 255, 255, 0.1);
+  background: rgb(var(--overlay-rgb), 0.1);
   color: white;
-  border: 1px solid rgb(255, 255, 255, 0.2);
+  border: 1px solid rgb(var(--overlay-rgb), 0.2);
   border-radius: 4px;
   font-size: 14px;
   font-weight: 500;
@@ -1499,8 +1950,8 @@ button:active {
 }
 
 .secondary-btn:hover:not(:disabled) {
-  background: rgb(255, 255, 255, 0.2);
-  border-color: rgb(255, 255, 255, 0.4);
+  background: rgb(var(--overlay-rgb), 0.2);
+  border-color: rgb(var(--overlay-rgb), 0.4);
 }
 
 .secondary-btn:disabled {
@@ -1510,9 +1961,9 @@ button:active {
 
 .icon-btn {
   padding: 8px 16px;
-  background: rgb(255, 255, 255, 0.1);
+  background: rgb(var(--overlay-rgb), 0.1);
   color: white;
-  border: 1px solid rgb(255, 255, 255, 0.2);
+  border: 1px solid rgb(var(--overlay-rgb), 0.2);
   border-radius: 4px;
   font-size: 14px;
   cursor: pointer;
@@ -1520,7 +1971,7 @@ button:active {
 }
 
 .icon-btn:hover {
-  background: rgb(255, 255, 255, 0.2);
+  background: rgb(var(--overlay-rgb), 0.2);
   transform: scale(1.05);
 }
 
@@ -1540,7 +1991,7 @@ button:active {
 
 .info-label {
   font-size: 12px;
-  color: #888;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -1548,7 +1999,7 @@ button:active {
 .info-value {
   font-size: 16px;
   font-weight: 500;
-  color: #fff;
+  color: var(--text-primary);
   padding: 8px;
   background: rgb(0, 0, 0, 0.3);
   border-radius: 4px;
@@ -1572,7 +2023,7 @@ button:active {
 
 .scenes-list li {
   padding: 12px;
-  background: rgb(255, 255, 255, 0.05);
+  background: rgb(var(--overlay-rgb), 0.05);
   border-radius: 4px;
   margin-bottom: 6px;
   display: flex;
@@ -1582,18 +2033,18 @@ button:active {
 }
 
 .scenes-list li:hover {
-  background: rgb(255, 255, 255, 0.1);
+  background: rgb(var(--overlay-rgb), 0.1);
   transform: translateX(4px);
 }
 
 .scenes-list li.active-scene {
   background: rgb(76, 175, 80, 0.2);
-  border-left: 4px solid #4CAF50;
+  border-left: 4px solid var(--success);
   padding-left: 8px;
 }
 
 .scenes-list li.empty-state {
-  color: #888;
+  color: var(--text-muted);
   justify-content: center;
   font-style: italic;
 }
@@ -1605,7 +2056,7 @@ button:active {
 
 .scene-badge {
   padding: 4px 8px;
-  background: #4CAF50;
+  background: var(--success);
   color: white;
   border-radius: 12px;
   font-size: 11px;
@@ -1636,7 +2087,7 @@ button:active {
 
 .dsk-source-item {
   padding: 8px;
-  background: rgb(255, 255, 255, 0.05);
+  background: rgb(var(--overlay-rgb), 0.05);
   border-radius: 4px;
   margin-bottom: 6px;
   display: flex;
@@ -1658,13 +2109,13 @@ button:active {
 }
 
 .dsk-source-status.enabled {
-  background: #4CAF50;
+  background: var(--success);
   color: white;
 }
 
 .dsk-source-status.disabled {
-  background: #666;
-  color: #aaa;
+  background: var(--bg-hover);
+  color: var(--text-tertiary);
 }
 
 /* Scene configuration */
@@ -1690,13 +2141,13 @@ button:active {
   align-items: center;
   gap: 8px;
   padding: 8px;
-  background: rgb(255, 255, 255, 0.05);
+  background: rgb(var(--overlay-rgb), 0.05);
   border-radius: 4px;
   transition: background 0.2s;
 }
 
 .monitor-scene-item:hover {
-  background: rgb(255, 255, 255, 0.1);
+  background: rgb(var(--overlay-rgb), 0.1);
 }
 
 .monitor-scene-item input[type="checkbox"] {
@@ -1715,23 +2166,23 @@ button:active {
 .obs-scene-select {
   width: 100%;
   padding: 10px;
-  background: rgb(255, 255, 255, 0.1);
-  border: 1px solid rgb(255, 255, 255, 0.2);
+  background: rgb(var(--overlay-rgb), 0.1);
+  border: 1px solid rgb(var(--overlay-rgb), 0.2);
   border-radius: 4px;
-  color: #fff;
+  color: var(--text-primary);
   font-size: 14px;
   cursor: pointer;
 }
 
 .obs-scene-select:focus {
   outline: none;
-  border-color: #4CAF50;
-  background: rgb(255, 255, 255, 0.15);
+  border-color: var(--success);
+  background: rgb(var(--overlay-rgb), 0.15);
 }
 
 .obs-scene-select option {
-  background: #2a2a2a;
-  color: #fff;
+  background: var(--bg-surface);
+  color: var(--text-primary);
 }
 
 /* Responsive adjustments */
@@ -1806,7 +2257,7 @@ button:active {
 
 .resume-header h2 {
   margin: 0;
-  color: #fff;
+  color: var(--text-primary);
   font-size: 18px;
 }
 
@@ -1827,21 +2278,21 @@ button:active {
 }
 
 .resume-btn.primary-btn {
-  background: #4caf50;
+  background: var(--success);
   color: white;
 }
 
 .resume-btn.primary-btn:hover:not(:disabled) {
-  background: #45a049;
+  background: var(--success-hover);
 }
 
 .resume-btn.secondary-btn {
-  background: #444;
-  color: #fff;
+  background: var(--bg-elevated);
+  color: var(--text-primary);
 }
 
 .resume-btn.secondary-btn:hover:not(:disabled) {
-  background: #555;
+  background: var(--bg-elevated-2);
 }
 
 .resume-btn:disabled {
@@ -1854,7 +2305,7 @@ button:active {
   align-items: center;
   gap: 16px;
   padding: 12px 16px;
-  background: #1a1a2e;
+  background: var(--bg-deep);
   border-radius: 8px;
   margin-bottom: 16px;
 }
@@ -1863,17 +2314,17 @@ button:active {
   font-family: 'Courier New', monospace;
   font-size: 32px;
   font-weight: bold;
-  color: #4caf50;
+  color: var(--success);
 }
 
 .resume-status-recording {
-  color: #f44336;
+  color: var(--danger);
   font-weight: bold;
   animation: pulse 1s infinite;
 }
 
 .resume-status-stopped {
-  color: #888;
+  color: var(--text-muted);
 }
 
 @keyframes pulse {
@@ -1884,7 +2335,7 @@ button:active {
 .resume-list-container {
   flex: 1;
   overflow-y: auto;
-  background: #1a1a2e;
+  background: var(--bg-deep);
   border-radius: 8px;
   padding: 12px;
   min-height: 200px;
@@ -1897,7 +2348,7 @@ button:active {
 }
 
 .resume-empty {
-  color: #666;
+  color: var(--bg-hover);
   text-align: center;
   padding: 40px 20px;
   font-style: italic;
@@ -1907,7 +2358,7 @@ button:active {
   display: flex;
   gap: 12px;
   padding: 8px 12px;
-  background: #222;
+  background: var(--bg-main);
   border-radius: 4px;
   align-items: flex-start;
 }
@@ -1918,25 +2369,25 @@ button:active {
 
 .resume-timestamp {
   font-family: 'Courier New', monospace;
-  color: #4caf50;
+  color: var(--success);
   font-weight: bold;
   min-width: 50px;
   flex-shrink: 0;
 }
 
 .resume-description {
-  color: #ddd;
+  color: var(--text-secondary);
   flex: 1;
   word-break: break-word;
 }
 
 .resume-separator {
   text-align: center;
-  color: #666;
+  color: var(--bg-hover);
   padding: 16px 0;
   font-style: italic;
-  border-top: 1px dashed #333;
-  border-bottom: 1px dashed #333;
+  border-top: 1px dashed var(--bg-surface-2);
+  border-bottom: 1px dashed var(--bg-surface-2);
   margin: 8px 0;
 }
 

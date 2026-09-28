@@ -29,7 +29,10 @@ export async function selectBible(name) {
   try {
     console.log(`📥 Loading bible: ${resolvedCode.toUpperCase()}...`);
     const bibleModule = await bible.loader();
-    const bibleFile = bibleModule.default;
+    // require.context(...,'lazy') (bibleConfig.js) doesn't always synthesize
+    // a `.default` the way a literal `import()` does — fall back to the
+    // module itself when there's no `.default`, so this works with either.
+    const bibleFile = bibleModule?.default ?? bibleModule;
 
     openedDb = await openDb(bibleFile);
     selectedBibleName = bible.name;
@@ -143,8 +146,8 @@ export async function searchCharacters(chapterBook) {
 
   try {
     const parts = chapterBook.trim().split(' ');
-    const lastPart = parts[parts.length - 1];
-    const hasChapterNumber = !isNaN(Number(lastPart));
+    const lastPart = parts[parts.length - 1].replace(/:\d+$/, '');
+    const hasChapterNumber = lastPart !== '' && !isNaN(Number(lastPart));
 
     const bookName = hasChapterNumber
       ? normalizeBookName(parts.slice(0, -1).join(' '))
@@ -240,7 +243,13 @@ function removeTags(str) {
   if (!str || str === '') return '';
 
   const text = str.toString();
-  return text.replace(/<(?!\/?i>)(?!i>).*?<\/(?!\/?i>)(?!i>).*?>|<i>|<\/i>/g, '');
+  // Self-closing tags (e.g. LBLA+'s <pb/> paragraph markers) have no closing
+  // counterpart, so they must be stripped first: otherwise the generic
+  // paired-tag pattern below treats the NEXT unrelated closing tag as this
+  // one's match, silently swallowing real words in between (e.g. "<pb/>
+  // Porque<S>1063</S>" matched as one block, deleting "Porque").
+  const withoutSelfClosingTags = text.replace(/<[a-zA-Z]+\s*\/>/g, '');
+  return withoutSelfClosingTags.replace(/<(?!\/?i>)(?!i>).*?<\/(?!\/?i>)(?!i>).*?>|<i>|<\/i>/g, '');
 }
 
 /**

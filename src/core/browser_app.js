@@ -20,74 +20,6 @@ function hasOverflow() {
   return hasVerticalOverflow || hasHorizontalOverflow;
 }
 
-let fontSizeMemory = {
-  history: [],
-  maxHistorySize: 20,
-
-  addSuccess: function (charCount, fontSize, containerArea) {
-    this.history.push({
-      chars: charCount,
-      size: fontSize,
-      area: containerArea,
-      timestamp: Date.now(),
-      success: true,
-    });
-
-    if (this.history.length > this.maxHistorySize) {
-      this.history.shift();
-    }
-  },
-
-  predictSize: function (charCount, containerArea) {
-    if (this.history.length === 0) return null;
-
-    const tolerance = 0.2;
-    const minChars = charCount * (1 - tolerance);
-    const maxChars = charCount * (1 + tolerance);
-
-    const similarEntries = this.history.filter(
-      (entry) => entry.chars >= minChars && entry.chars <= maxChars && entry.success
-    );
-
-    if (similarEntries.length === 0) {
-      const areaTolerance = 0.3;
-      const minArea = containerArea * (1 - areaTolerance);
-      const maxArea = containerArea * (1 + areaTolerance);
-
-      const areaMatches = this.history.filter(
-        (entry) => entry.area >= minArea && entry.area <= maxArea && entry.success
-      );
-
-      if (areaMatches.length > 0) {
-        const avgSize =
-          areaMatches.reduce((sum, entry) => sum + entry.size, 0) / areaMatches.length;
-        return Math.round(avgSize);
-      }
-
-      return null;
-    }
-
-    let totalWeight = 0;
-    let weightedSum = 0;
-
-    similarEntries.forEach((entry) => {
-      const recencyWeight = 1 + (entry.timestamp - Date.now() + 300000) / 300000;
-      const similarityWeight = 1 - Math.abs(entry.chars - charCount) / charCount;
-      const weight = Math.max(0.1, recencyWeight * similarityWeight);
-
-      weightedSum += entry.size * weight;
-      totalWeight += weight;
-    });
-
-    return Math.round(weightedSum / totalWeight);
-  },
-
-  cleanup: function () {
-    const fiveMinutesAgo = Date.now() - 300000;
-    this.history = this.history.filter((entry) => entry.timestamp > fiveMinutesAgo);
-  },
-};
-
 function calculateEstimatedLines(text, fontSize, containerWidth) {
   const cleanText = text
     .replace(/<[^>]*>/g, '')
@@ -211,161 +143,58 @@ function preCalculateFontSize(
 
 window.preCalculateFontSize = preCalculateFontSize;
 
+/**
+ * Finds the largest font size that fills the container without overflowing.
+ * Width isn't checked separately — calculateEstimatedLines() already folds
+ * containerWidth into how many lines a given font size wraps to, so
+ * scanning font sizes from largest to smallest and taking the first one
+ * whose wrapped height fits is exactly "as big as possible in both
+ * directions." hasTitle only reserves vertical room for the title (whose
+ * own size is a separate, user-configured setting — see titleFontSize in
+ * settings.js), it doesn't cap how wide the verse text itself can grow.
+ *
+ * Previously this picked a size from small, hardcoded per-character-count
+ * bands (e.g. 27-31px for long text) that ignored the container's actual
+ * size entirely — text stayed tiny on a 1920px-wide canvas. That's the
+ * regression the "always used to fill the space" complaint was about.
+ */
 function calculateOptimalFontSize(text, containerWidth, containerHeight, hasTitle = false) {
   const textOnly = text
     .replace(/<[^>]*>/g, '')
     .replace(/\s+/g, ' ')
     .trim();
   const totalChars = textOnly.length;
-  const containerArea = containerWidth * containerHeight;
-
-  console.log(
-    `🧠 ALGORITMO INTELIGENTE MEJORADO: "${textOnly.substring(0, 30)}..." (${totalChars} chars)`
-  );
-  console.log(
-    `   📐 Contenedor: ${containerWidth}×${containerHeight}px (${containerArea} área), hasTitle: ${hasTitle}`
-  );
-
-  const predictedSize = null;
-
-  console.log(`   🎯 Modo dinámico: Sin predicción de memoria, basado solo en caracteres`);
-
-  let minSize, maxSize, tramo, startingPoint;
-
-  if (totalChars <= 9) {
-    minSize = 29;
-    maxSize = 38;
-    tramo = 'Referencias ultra cortas';
-  } else if (totalChars <= 12) {
-    minSize = 43;
-    maxSize = 49;
-    tramo = 'Referencias muy cortas';
-  } else if (totalChars <= 15) {
-    minSize = 50;
-    maxSize = 60;
-    tramo = 'Referencias cortas';
-  } else if (totalChars <= 20) {
-    minSize = 44;
-    maxSize = 48;
-    tramo = 'Referencias medianas';
-  } else if (totalChars <= 80) {
-    minSize = 35;
-    maxSize = 45;
-    tramo = 'Versículos cortos';
-  } else if (totalChars <= 150) {
-    minSize = 30;
-    maxSize = 40;
-    tramo = 'Versículos medianos';
-  } else if (totalChars <= 350) {
-    minSize = 33;
-    maxSize = 39;
-    tramo = 'Textos largos';
-  } else {
-    minSize = 27;
-    maxSize = 31;
-    tramo = 'Textos extremadamente largos';
-  }
-
-  startingPoint = Math.round((minSize + maxSize) / 2);
-  console.log(`   🎯 Iniciando desde centro del rango: ${startingPoint}px (modo dinámico)`);
-
-  console.log(`   📊 ${tramo}: ${totalChars} chars → Rango ${minSize}-${maxSize}px`);
 
   const effectiveHeight = containerHeight * (hasTitle ? 0.68 : 0.87);
   const lineHeightMultiplier = 1.25;
 
-  console.log(`   🎯 Altura disponible: ${effectiveHeight}px (de ${containerHeight}px total)`);
-  console.log(`   🚧 Límites estrictos: ${minSize}-${maxSize}px para ${tramo}`);
+  const minSize = 16;
+  const maxSize = Math.max(minSize, Math.min(Math.floor(containerHeight * 0.55), 200));
 
-  let bestFontSize = startingPoint;
-  let bestScore = -1;
-  const maxIterations = 30;
-  let iterations = 0;
+  console.log(
+    `🧠 Autofit: "${textOnly.substring(0, 30)}..." (${totalChars} chars), contenedor ${containerWidth}×${containerHeight}px, hasTitle: ${hasTitle}, buscando en ${minSize}-${maxSize}px`
+  );
 
-  function evaluateSize(fontSize) {
-    if (fontSize < minSize || fontSize > maxSize) {
-      console.log(`   ❌ ${fontSize}px fuera del rango ${minSize}-${maxSize}px`);
-      return 0;
-    }
+  let bestFontSize = minSize;
+  let bestLineInfo = calculateEstimatedLines(textOnly, minSize, containerWidth);
 
+  for (let fontSize = maxSize; fontSize >= minSize; fontSize--) {
     const lineInfo = calculateEstimatedLines(textOnly, fontSize, containerWidth);
     const totalTextHeight = lineInfo.estimatedLines * fontSize * lineHeightMultiplier;
 
-    if (totalTextHeight > effectiveHeight) {
-      console.log(
-        `   ❌ ${fontSize}px no cabe: ${totalTextHeight.toFixed(1)}px > ${effectiveHeight.toFixed(1)}px`
-      );
-      return 0;
-    }
-
-    const heightUtilization = totalTextHeight / effectiveHeight;
-    const sizeBonus = fontSize / maxSize;
-    const confidenceBonus = lineInfo.confidence || 0.8;
-
-    let utilizationScore = 1;
-    if (heightUtilization < 0.7) {
-      utilizationScore = heightUtilization / 0.7;
-    } else if (heightUtilization > 0.9) {
-      utilizationScore = (1 - heightUtilization) / 0.1;
-    }
-
-    const finalScore = utilizationScore * 0.4 + sizeBonus * 0.4 + confidenceBonus * 0.2;
-
-    console.log(
-      `   ✅ Evaluando ${fontSize}px: ${lineInfo.estimatedLines} líneas, ${totalTextHeight.toFixed(1)}px/${effectiveHeight.toFixed(1)}px (${(heightUtilization * 100).toFixed(1)}%), score: ${finalScore.toFixed(3)}`
-    );
-
-    return finalScore;
-  }
-
-  let currentScore = evaluateSize(startingPoint);
-  bestScore = currentScore;
-  bestFontSize = startingPoint;
-
-  for (
-    let fontSize = startingPoint + 1;
-    fontSize <= maxSize && iterations < maxIterations;
-    fontSize++, iterations++
-  ) {
-    const score = evaluateSize(fontSize);
-    if (score > bestScore) {
-      bestScore = score;
+    if (totalTextHeight <= effectiveHeight) {
       bestFontSize = fontSize;
-    } else if (score === 0) {
+      bestLineInfo = lineInfo;
       break;
     }
   }
 
-  for (
-    let fontSize = startingPoint - 1;
-    fontSize >= minSize && iterations < maxIterations;
-    fontSize--, iterations++
-  ) {
-    const score = evaluateSize(fontSize);
-    if (score > bestScore) {
-      bestScore = score;
-      bestFontSize = fontSize;
-    }
-  }
-
-  console.log(`   🔄 Memoria contextual deshabilitada - comportamiento puramente dinámico`);
-
-  const finalLineInfo = calculateEstimatedLines(textOnly, bestFontSize, containerWidth);
-  const finalTextHeight = finalLineInfo.estimatedLines * bestFontSize * lineHeightMultiplier;
+  const finalTextHeight = bestLineInfo.estimatedLines * bestFontSize * lineHeightMultiplier;
   const heightUsagePercent = ((finalTextHeight / effectiveHeight) * 100).toFixed(1);
 
-  console.log(`   🎯 RESULTADO FINAL INTELIGENTE:`);
   console.log(
-    `      ├─ Tamaño: ${bestFontSize}px (rango ${minSize}-${maxSize}px, score: ${bestScore.toFixed(3)})`
+    `   🎯 Resultado: ${bestFontSize}px, ${bestLineInfo.estimatedLines} líneas, ${finalTextHeight.toFixed(1)}px de ${effectiveHeight.toFixed(1)}px (${heightUsagePercent}%)`
   );
-  console.log(
-    `      ├─ Líneas: ${finalLineInfo.estimatedLines} (${finalLineInfo.charsPerLine} chars/línea, confianza: ${(finalLineInfo.confidence * 100).toFixed(1)}%)`
-  );
-  console.log(
-    `      ├─ Altura: ${finalTextHeight.toFixed(1)}px de ${effectiveHeight.toFixed(1)}px (${heightUsagePercent}%)`
-  );
-  console.log(`      ├─ Iteraciones: ${iterations}/${maxIterations}`);
-  console.log(`      └─ Memoria: DESHABILITADA (modo completamente dinámico)`);
 
   const wordCount = textOnly.split(/\s+/).length;
   const spaceCount = (textOnly.match(/\s/g) || []).length;
@@ -376,18 +205,13 @@ function calculateOptimalFontSize(text, containerWidth, containerHeight, hasTitl
     letterCount: totalChars - spaceCount,
     spaceCount: spaceCount,
     wordCount: wordCount,
-    estimatedLines: finalLineInfo.estimatedLines,
-    charsPerLine: finalLineInfo.charsPerLine,
+    estimatedLines: bestLineInfo.estimatedLines,
+    charsPerLine: bestLineInfo.charsPerLine,
     totalTextHeight: finalTextHeight,
     heightUsagePercent: parseFloat(heightUsagePercent),
     effectiveHeight: effectiveHeight,
-    estimatedDensity: totalChars / (bestFontSize * bestFontSize),
-    confidence: finalLineInfo.confidence,
-    score: bestScore,
-    iterations: iterations,
-    predictedSize: predictedSize,
-    method: 'intelligent-contextual-adaptive',
-    method2: bestFontSize,
+    confidence: bestLineInfo.confidence,
+    method: 'max-width-autofit',
   };
 }
 
@@ -555,7 +379,7 @@ function adjustFontSizeBasedOnContent() {
     window.styleManager.forceReflow();
   } else {
     messageDisplay.style.fontSize = fontSize + 'px';
-    messageDisplay.offsetHeight;
+    void messageDisplay.offsetHeight; // force synchronous reflow
   }
 
   if (hasTitle) {
@@ -570,7 +394,7 @@ function adjustFontSizeBasedOnContent() {
       messageDisplay.style.justifyContent = 'flex-start';
       messageDisplay.style.wordWrap = 'break-word';
       messageDisplay.style.overflowWrap = 'break-word';
-      messageDisplay.offsetHeight;
+      void messageDisplay.offsetHeight; // force synchronous reflow
     }
   }
 

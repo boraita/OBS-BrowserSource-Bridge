@@ -1,15 +1,46 @@
 import { processVerseText } from '../api/getData.js';
 import { getBibleMap } from '../config/bibleConfig.js';
 import { addEntry, isCurrentlyRecording } from './resumeManager.js';
-import { isContentVisible } from './appState.js';
+import {
+  isContentVisible,
+  setOnAirVerse,
+  getOnAirVerse,
+  setOnAirBibleCode,
+  getOnAirBibleCode,
+  setOnAirSearchContext,
+  getOnAirSearchContext,
+  getSearchMode,
+} from './appState.js';
+import obsWebSocket from './obsWebSocket.js';
 
 const messageChannel = new BroadcastChannel('myChannel');
 const historyButton = document.getElementById('history');
 const CLICK_DEBOUNCE_MS = 300;
 const BIBLE_MAP = getBibleMap();
 
-let verseHistory = [];
+const verseHistory = [];
 let lastSelectedVerse = null;
+
+/**
+ * Sends over BroadcastChannel and, as a fallback for OBS's Custom Dock /
+ * Browser Source partition isolation (obsproject/obs-studio#6202), also
+ * relays via OBS WebSocket's CustomEvent — see broadcastChannels.js.
+ */
+function broadcastVerse(message) {
+  messageChannel.postMessage(message);
+  obsWebSocket.broadcastCustomEvent({ channel: 'myChannel', data: message });
+}
+
+/**
+ * Escapes text for safe injection into the overlay's innerHTML.
+ * Operator-typed text (free text, list title) is otherwise plain text,
+ * never meant to carry HTML — this prevents accidental script/tag injection.
+ */
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
 
 /**
  * Sends free-form text message to browser overlay
@@ -17,7 +48,7 @@ let lastSelectedVerse = null;
  */
 function sendFreeTextMessage() {
   const message = document.getElementById('messageInput').value;
-  messageChannel.postMessage(message);
+  broadcastVerse(escapeHtml(message));
   console.log('📤 Free text sent (font size will be pre-calculated)');
 }
 
@@ -32,7 +63,7 @@ if (sendButton) {
 function handleKeyboardShortcut(event) {
   if (event.ctrlKey && event.code === 'ArrowDown') {
     const message = document.getElementById('messageInput').value;
-    messageChannel.postMessage(message);
+    broadcastVerse(escapeHtml(message));
   }
 }
 
@@ -51,13 +82,108 @@ function sendListMessage() {
     listElement.appendChild(listItem);
   });
 
-  const message = `<span>${listTitle}</span>\n${listElement.outerHTML}`;
-  messageChannel.postMessage(message);
+  const message = `<span>${escapeHtml(listTitle)}</span>\n${listElement.outerHTML}`;
+  broadcastVerse(message);
   console.log('📤 List sent (font size will be pre-calculated)');
 }
 
 document.getElementById('sendList').addEventListener('click', sendListMessage);
 document.addEventListener('keyup', handleKeyboardShortcut, false);
+
+// Set by jumpToOnAir() when it has to switch Bible/re-run a search to bring
+// the on-air row back into the DOM — updateOnAirStatusUI() (called at the
+// end of every search, see searchBible.js) checks it once the new results
+// are actually rendered and scrolls then, instead of guessing a timeout.
+let pendingJumpToOnAir = false;
+
+/**
+ * Refreshes the "on air" status strip and the highlighted row so an operator
+ * can tell what's actually visible on the overlay right now, even after
+ * scrolling through a long result list or running a new search.
+ */
+function updateOnAirStatusUI() {
+  const statusEl = document.getElementById('on-air-status');
+  if (!statusEl) return;
+
+  const onAir = getOnAirVerse();
+  const visible = isContentVisible();
+
+  document.querySelectorAll('#bible-verse p.on-air-row').forEach((el) => {
+    el.classList.remove('on-air-row');
+  });
+
+  if (!onAir) {
+    statusEl.className = 'on-air-status is-empty';
+    statusEl.textContent = 'Ningún versículo mostrado todavía';
+    return;
+  }
+
+  if (visible) {
+    statusEl.className = 'on-air-status is-live';
+    const rowEl = document.getElementById(onAir.id);
+    const previewText = rowEl?.querySelector('.verse-text')?.textContent.trim() || '';
+    const preview = previewText.length > 60 ? `${previewText.slice(0, 60).trim()}…` : previewText;
+
+    statusEl.innerHTML = `
+      <span class="on-air-dot"></span>
+      <span class="on-air-label">EN DIRECTO</span>
+      <span class="on-air-ref">${onAir.label}</span>
+      <span class="on-air-preview">${preview}</span>
+      <button type="button" class="on-air-jump" id="on-air-jump">ir ↓</button>
+    `;
+
+    document.getElementById('on-air-jump')?.addEventListener('click', jumpToOnAir);
+
+    if (rowEl) {
+      rowEl.classList.add('on-air-row');
+      if (pendingJumpToOnAir) {
+        pendingJumpToOnAir = false;
+        rowEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  } else {
+    statusEl.className = 'on-air-status is-ready';
+    statusEl.textContent = `Listo para mostrar: ${onAir.label}`;
+  }
+}
+
+/**
+ * "ir ↓" — brings back whatever Bible/search produced the on-air verse, so
+ * browsing another translation while live doesn't lose your place. If the
+ * operator switched Bibles (or ran a different search) to compare
+ * translations, the on-air row is no longer in the DOM to scroll to; this
+ * restores the exact bible + query + mode that showed it, then scrolls once
+ * the new results render (see pendingJumpToOnAir above).
+ */
+async function jumpToOnAir() {
+  const onAir = getOnAirVerse();
+  if (!onAir) return;
+
+  const onAirBible = getOnAirBibleCode();
+  const context = getOnAirSearchContext();
+  const bibleSelect = document.getElementById('bible-version');
+  const currentBible = bibleSelect?.value?.toLowerCase();
+
+  const needsBibleSwitch = onAirBible && currentBible !== onAirBible;
+  const rowMissing = !document.getElementById(onAir.id);
+
+  if (needsBibleSwitch) {
+    pendingJumpToOnAir = true;
+    await window.switchToBible?.(onAirBible);
+    if (context?.query) {
+      window.restoreSearchContext?.(context);
+    }
+    return;
+  }
+
+  if (rowMissing && context?.query) {
+    pendingJumpToOnAir = true;
+    window.restoreSearchContext?.(context);
+    return;
+  }
+
+  document.getElementById(onAir.id)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
 
 /**
  * Updates visual selection state of verses in the panel
@@ -144,11 +270,20 @@ function displayBible(verse, index) {
       });
     }
 
-    messageChannel.postMessage(messageHtml);
+    broadcastVerse(messageHtml);
     console.log(`📚 Sending verse with version: ${versionName}`);
     console.log('ℹ️ Font size will be pre-calculated automatically');
 
     updateVerseSelection(clickedVerse, index);
+
+    setOnAirVerse({ id: clickedVerse.id, label: title || versionName || 'Versículo' });
+    setOnAirBibleCode(versionCode);
+    setOnAirSearchContext({
+      query: document.getElementById('bible-input')?.value.trim() || '',
+      mode: getSearchMode(),
+    });
+    updateOnAirStatusUI();
+    window.refreshChipLiveState?.();
 
     addToHistory(clickedVerse.id, messageHtml);
   });
@@ -206,4 +341,4 @@ function getLastSelectedVerse() {
   return lastSelectedVerse;
 }
 
-export { displayBible, getLastSelectedVerse };
+export { displayBible, getLastSelectedVerse, updateOnAirStatusUI };

@@ -18,22 +18,42 @@
           <div class="container">
             <div class="bible-search">
               <div class="input-suggest">
-                <input id="bible-input" placeholder="Psalm 1:1 or any verse content" />
+                <input id="bible-input" placeholder="salmo 23" />
                 <div id="suggestions"></div>
+              </div>
+              <div class="search-mode-toggle" id="search-mode-toggle">
+                <button
+                  type="button"
+                  class="mode-pill active"
+                  id="mode-reference"
+                  data-mode="reference"
+                >
+                  Ref
+                </button>
+                <button type="button" class="mode-pill" id="mode-text" data-mode="text">Tex</button>
               </div>
               <select class="select-bible-version" id="bible-version">
                 <!-- Options populated dynamically from bibleConfig.js -->
               </select>
-              <input type="submit" id="bible-submit" value="Search" />
-              <span id="history">History</span>
+              <button type="button" id="bible-submit" class="bible-submit-btn" aria-label="Buscar">
+                ↵
+              </button>
+            </div>
+            <div id="search-result-count" class="search-result-count" hidden></div>
+            <div class="bible-chip-row" id="bible-chip-row">
+              <!-- One chip per Bible, populated from bibleConfig.js, mirrors #bible-version -->
             </div>
             <div class="bible" id="bible">
+              <div id="on-air-status" class="on-air-status is-empty">
+                Ningún versículo mostrado todavía
+              </div>
               <div class="bible-verse" id="bible-verse">
                 <!-- Area where the Bible verses are rendered -->
               </div>
             </div>
-            <div class="handle-container-button">
-              <button id="bg-container-btn">Show</button>
+            <div class="panel-bottom-bar">
+              <span id="history" class="history-btn">Historial</span>
+              <button id="bg-container-btn" class="show-overlay-btn">Mostrar en overlay</button>
             </div>
           </div>
         </div>
@@ -214,8 +234,9 @@
                 </div>
               </div>
               <div class="resume-info">
-                <p style="color: #888; font-size: 12px; margin: 0;">
-                  💡 Recording starts/stops automatically when OBS starts/stops recording (if connected).
+                <p style="color: #888; font-size: 12px; margin: 0">
+                  💡 Recording starts/stops automatically when OBS starts/stops recording (if
+                  connected).
                 </p>
               </div>
               <div class="resume-timer">
@@ -233,7 +254,28 @@
         <div id="setBg" class="tab-area" style="display: none">
           <div class="container settings-layout">
             <div class="settings-section settings-section--wide" id="quickSettings">
-              <h3>⚡ Quick Settings</h3>
+              <div class="settings-section-header">
+                <h3>⚡ Quick Settings</h3>
+                <div class="settings-section-header-actions">
+                  <button
+                    id="resyncSettingsBtn"
+                    class="button-inline"
+                    type="button"
+                    title="Reenviar toda la apariencia actual al overlay (útil si acaba de cargar en OBS)"
+                  >
+                    🔄 Reenviar al overlay
+                  </button>
+                  <button
+                    id="theme-toggle"
+                    class="theme-toggle"
+                    type="button"
+                    title="Cambiar tema claro/oscuro"
+                    aria-label="Cambiar tema claro/oscuro"
+                  >
+                    🌙
+                  </button>
+                </div>
+              </div>
               <p class="settings-description">
                 Pick a minimalist preset as a starting point and tweak the basics before
                 fine-tuning.
@@ -826,6 +868,7 @@
                         <option value="slideInFromBottom">⬇️ From bottom</option>
                         <option value="zoomIn">🔍 Zoom</option>
                         <option value="typewriter">⌨️ Typewriter</option>
+                        <option value="illuminate">🕯️ Illuminate</option>
                       </select>
                       <div class="slidecontainer">
                         <label>⏱️ Duration: <span id="animationDurationDisplay">1s</span></label>
