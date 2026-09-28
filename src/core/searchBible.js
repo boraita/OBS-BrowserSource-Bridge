@@ -37,6 +37,8 @@ function createVerseElement(verse, { grouped, highlightTerm } = {}) {
 
   const pElement = document.createElement('p');
   pElement.id = cleanedName;
+  // Original-case reference (e.g. "Génesis 4:6") for the Resume tab
+  pElement.dataset.reference = verse.name;
 
   const verseHtml = highlightTerm ? highlightMatches(verse.verse, highlightTerm) : verse.verse;
 

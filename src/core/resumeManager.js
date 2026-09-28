@@ -74,28 +74,35 @@ function persistActiveDay() {
 }
 
 /**
- * Plain-text version of a list of entries, as copied to the clipboard
+ * Plain-text version of a list of entries, as copied to the clipboard:
+ * one line per verse with a blank line between them
  */
 function formatEntriesAsText(entries) {
-  let text = '';
-  entries.forEach((entry) => {
-    if (entry.type === 'separator') {
-      text += '\n--- New recording ---\n\n';
-    } else {
-      text += `${entry.timestamp} ${entry.description}\n`;
-    }
-  });
-  return text.trim();
+  return entries
+    .filter((entry) => entry.type === 'entry')
+    .map(formatEntryLine)
+    .join('\n\n');
 }
 
 /**
- * Format milliseconds to MM:SS
+ * Format milliseconds to MM:SS, or HH:MM:SS from the first hour on
  */
 function formatTime(ms) {
   const totalSeconds = Math.floor(ms / 1000);
-  const minutes = Math.floor(totalSeconds / 60);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;
-  return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  const pad = (value) => value.toString().padStart(2, '0');
+  return hours > 0
+    ? `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
+    : `${pad(minutes)}:${pad(seconds)}`;
+}
+
+/**
+ * One resume line: "49:09 (Génesis 4:6)*Kadosh Israelita|"
+ */
+function formatEntryLine(entry) {
+  return `${entry.timestamp} ${entry.description}`;
 }
 
 /**
@@ -191,13 +198,12 @@ function addEntry(verseInfo) {
   const elapsed = Date.now() - recordingStartTime;
   const timestamp = formatTime(elapsed);
 
-  // Build description from verse info
+  // Build description from verse info: "(Génesis 4:6)*Kadosh Israelita|"
   let description = '';
-  if (verseInfo && verseInfo.title) {
-    description = verseInfo.title;
-    if (verseInfo.versionName) {
-      description += ` - ${verseInfo.versionName}`;
-    }
+  const reference = verseInfo && (verseInfo.reference || verseInfo.title);
+  if (reference) {
+    const version = verseInfo.versionLabel || verseInfo.versionName || '';
+    description = `(${reference})*${version}|`;
   } else {
     description = 'Verse shown';
   }
