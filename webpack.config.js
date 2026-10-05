@@ -142,9 +142,10 @@ module.exports = {
   ],
   devtool: process.env.NODE_ENV === 'production' ? false : 'eval-source-map',
   devServer: {
-    static: {
-      directory: buildPath,
-    },
+    // dev-assets/ (gitignored) holds local-only files such as the
+    // ?previewBg= photos. It lives outside dist/ because output.clean wipes
+    // dist/ on every build.
+    static: [{ directory: buildPath }, { directory: path.resolve(__dirname, 'dev-assets') }],
     compress: true,
     hot: true,
     port: 8080,

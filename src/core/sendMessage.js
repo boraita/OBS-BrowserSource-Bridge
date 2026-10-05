@@ -1,5 +1,5 @@
 import { processVerseText } from '../api/getData.js';
-import { getBibleMap } from '../config/bibleConfig.js';
+import { getBibleDisplayName, getBibleMap } from '../config/bibleConfig.js';
 import { addEntry, isCurrentlyRecording } from './resumeManager.js';
 import {
   isContentVisible,
@@ -260,14 +260,13 @@ function displayBible(verse, index) {
       title: title,
       versionName: versionName,
       text: verseText,
+      reference: clickedVerse.dataset.reference || title,
+      versionLabel: versionCode ? getBibleDisplayName(versionCode) : versionName,
     };
 
     // Add to resume if recording AND content is visible
     if (isCurrentlyRecording() && isContentVisible()) {
-      addEntry({
-        title: title,
-        versionName: versionName,
-      });
+      addEntry(lastSelectedVerse);
     }
 
     broadcastVerse(messageHtml);

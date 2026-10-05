@@ -1,5 +1,6 @@
 import { openDb } from './connectDb.js';
 import { requiresTagCleaning, getBibleMap } from '../config/bibleConfig.js';
+import { normalizeForSearch } from '../utils/normalizeText.js';
 
 const BIBLE_MAP = getBibleMap();
 const DEFAULT_BIBLE = 'kdsh';
@@ -126,9 +127,28 @@ export async function getBibleChapterBooksList() {
 }
 
 function normalizeBookName(bookName) {
-  if (!bookName) return '';
-  const trimmed = bookName.trim();
-  return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+  return bookName ? normalizeForSearch(bookName.trim()) : '';
+}
+
+/**
+ * Resolves what the operator typed to one book_number, ignoring case and
+ * accents: an exact name wins ("juan" → Juan, not 1 Juan), otherwise the
+ * first book whose name starts with it ("gen" → Génesis).
+ */
+function findBookNumber(db, normalizedName) {
+  if (!normalizedName) return null;
+
+  const stmt = db.prepare(`
+    SELECT book_number FROM books
+    WHERE normalize_search(long_name) = ?1
+       OR normalize_search(long_name) LIKE ?1 || '%'
+    ORDER BY normalize_search(long_name) = ?1 DESC, book_number
+    LIMIT 1
+  `);
+  stmt.bind([normalizedName]);
+  const bookNumber = stmt.step() ? stmt.get()[0] : null;
+  stmt.free();
+  return bookNumber;
 }
 
 export async function searchCharacters(chapterBook) {
@@ -155,22 +175,28 @@ export async function searchCharacters(chapterBook) {
 
     const chapterNumber = hasChapterNumber ? Number(lastPart) : null;
 
+    const bookNumber = findBookNumber(db, bookName);
+    if (bookNumber === null) {
+      console.log(`ℹ️ No book found for: ${chapterBook}`);
+      return [];
+    }
+
     const sql =
       chapterNumber !== null
         ? `SELECT verses.chapter, verses.verse, verses.text, books.long_name
            FROM books
            INNER JOIN verses ON books.book_number = verses.book_number
-           WHERE books.long_name LIKE ?
+           WHERE books.book_number = ?
              AND verses.chapter = ?
            ORDER BY verses.chapter, verses.verse`
         : `SELECT verses.chapter, verses.verse, verses.text, books.long_name
            FROM books
            INNER JOIN verses ON books.book_number = verses.book_number
-           WHERE books.long_name LIKE ?
+           WHERE books.book_number = ?
            ORDER BY verses.chapter, verses.verse`;
 
     const stmt = db.prepare(sql);
-    stmt.bind(chapterNumber !== null ? [bookName, chapterNumber] : [bookName]);
+    stmt.bind(chapterNumber !== null ? [bookNumber, chapterNumber] : [bookNumber]);
 
     const results = [];
     while (stmt.step()) {
@@ -212,10 +238,10 @@ export async function searchInBibleText(text) {
       SELECT verses.chapter, verses.verse, verses.text, books.long_name
       FROM books
       INNER JOIN verses ON books.book_number = verses.book_number
-      WHERE verses.text LIKE ?
+      WHERE normalize_search(verses.text) LIKE ?
       ORDER BY books.book_number, verses.chapter, verses.verse
     `);
-    stmt.bind([`%${text}%`]);
+    stmt.bind([`%${normalizeForSearch(text.trim())}%`]);
 
     const results = [];
     while (stmt.step()) {
