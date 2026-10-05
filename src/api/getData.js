@@ -3,7 +3,9 @@ import { requiresTagCleaning, getBibleMap } from '../config/bibleConfig.js';
 import { normalizeForSearch } from '../utils/normalizeText.js';
 
 const BIBLE_MAP = getBibleMap();
-const DEFAULT_BIBLE = 'kdsh';
+// Kadosh when it's part of this build; otherwise the first one bundled
+// (the minimal release package only ships RVR60).
+const DEFAULT_BIBLE = BIBLE_MAP.kdsh ? 'kdsh' : Object.keys(BIBLE_MAP)[0];
 
 export let openedDb = null;
 export let selectedBibleName = null;
