@@ -1,7 +1,25 @@
+const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
 const path = require('path');
 const buildPath = path.resolve(__dirname, 'dist');
+
+// BIBLES=RVR60,NVI limits which src/db/*.sqlite files the build discovers
+// (bibleConfig.js uses require.context over that folder). The minimal
+// release package builds with only the bundled sample Bible, so the panel
+// never lists a translation whose chunk isn't shipped.
+const bibleNames = (process.env.BIBLES || '')
+  .split(',')
+  .map((name) => name.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+  .filter(Boolean);
+const bibleFilterPlugins = bibleNames.length
+  ? [
+      new webpack.ContextReplacementPlugin(
+        /[\\/]src[\\/]db$/,
+        new RegExp(`^\\./(${bibleNames.join('|')})\\.sqlite$`, 'i')
+      ),
+    ]
+  : [];
 
 module.exports = {
   mode: process.env.NODE_ENV === 'production' ? 'production' : 'development',
@@ -106,6 +124,7 @@ module.exports = {
     ],
   },
   plugins: [
+    ...bibleFilterPlugins,
     new NodePolyfillPlugin(),
     new HtmlWebpackPlugin({
       hash: true,

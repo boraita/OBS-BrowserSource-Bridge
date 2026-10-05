@@ -62,7 +62,7 @@ echo -e "${GREEN}✓ $OLD_VERSION → $NEW_VERSION${NC}"
 # ── Build + Package ──────────────────────────────────────────────────────────
 
 echo -e "${BLUE}[2/5] Building and packaging...${NC}"
-pnpm build
+BIBLES=RVR60 pnpm build
 ./scripts/package-release.sh
 echo -e "${GREEN}✓ Build y release ZIP generados${NC}"
 

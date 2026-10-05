@@ -9,7 +9,7 @@
     "build:analyze": "NODE_ENV=production webpack --mode production --config webpack.config.js --profile --json > stats.json",
     "start": "NODE_ENV=development webpack-dev-server --config webpack.config.js --mode development --host localhost --port 8080 --open",
     "typecheck": "tsc --noEmit",
-    "package": "pnpm build && ./scripts/package-release.sh",
+    "package": "BIBLES=RVR60 pnpm build && ./scripts/package-release.sh",
     "package:full": "pnpm build && ./scripts/package-release-full.sh",
     "release": "pnpm package",
     "release:full": "pnpm package:full",
